@@ -83,10 +83,10 @@ node build_deck.js
 
 El trabajo se hizo con dos asistentes de IA con roles separados, dentro del ecosistema [Gentle AI](https://github.com/Gentleman-Programming/gentle-shell):
 
-- **Claude Opus 5.5**, orquestador: planifica las tareas y escribe el código y el texto a partir de la especificación del trabajo.
+- **Claude Opus 5.5**, orquestador: ayuda a organizar las tareas y redacta borradores de código, scripts y texto a partir de la especificación del trabajo, bajo la dirección del autor, que los revisa, corrige y aprueba.
 - **Gemini 4 Neon**, auditor: solo lee y verifica cada entrega contra la especificación, con evidencia.
 
-El autor definió la especificación, tomó las decisiones y revisó los resultados. Las cifras salen de las corridas del banco de pruebas, no de los asistentes. El detalle está en la sección 5.10 del informe.
+El autor definió la especificación, tomó las decisiones, revisó los resultados y es responsable del trabajo. Las cifras salen de las corridas del banco de pruebas, no de los asistentes. El detalle está en la sección 5.10 del informe.
 
 ## Nota
 
