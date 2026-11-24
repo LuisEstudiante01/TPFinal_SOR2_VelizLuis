@@ -1,0 +1,32 @@
+{
+  "condition": "exp1_host",
+  "port": 11434,
+  "n_per_prompt": 1,
+  "model": "llama3.2:3b",
+  "model_digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+  "options": {
+    "temperature": 0,
+    "seed": 1,
+    "num_predict": 128,
+    "num_ctx": 4096
+  },
+  "ollama_version": "0.40.16",
+  "kernel": "7.0.0-43-generic",
+  "governor": [
+    "performance"
+  ],
+  "cgroup": "/sys/fs/cgroup/system.slice/ollama.service",
+  "prompts_chars": {
+    "short": 83,
+    "long": 2476
+  },
+  "cpu_max": "max 100000",
+  "cpuset_cpus": null,
+  "competitors": 0,
+  "competitor_nice": 0,
+  "started": "2026-11-19T18:33:51",
+  "runner_threads_total": {
+    "187429": 39
+  },
+  "finished": "2026-11-19T18:34:18"
+}

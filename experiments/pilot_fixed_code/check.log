@@ -1,0 +1,27 @@
+
+=== [1/2] exp1_host === 18:33:51 temp=69.375C
+container cpu.max=max 100000 cpuset=0-23
+unloading model from the other instance (port 11435)
+cold     short rep=0   ttft=1.1440s tok/s=27.7615 throttled=0->0
+warmup   short rep=0   ttft=0.0728s tok/s=27.7412 throttled=0->0
+warmup   long  rep=0   ttft=0.9498s tok/s=26.7101 throttled=0->0
+measured short rep=1   ttft=0.0838s tok/s=27.7491 throttled=0->0
+measured long  rep=1   ttft=0.9453s tok/s=26.7381 throttled=0->0
+wrote /home/lusbe/tp/check/exp1_host_20261119-183351.csv
+end exp1_host 18:34:18 temp=60.625C competitors_alive=0/0
+
+=== [2/2] exp3_comp1 === 18:34:18 temp=60.625C
+container cpu.max=max 100000 cpuset=6-11,18-23
+started 1 stress-ng workers, nice 0, in the container cgroup
+unloading model from the other instance (port 11434)
+cold     short rep=0   ttft=3.1886s tok/s=2.2863 throttled=185665->185665
+warmup   short rep=0   ttft=1.3238s tok/s=2.6137 throttled=185665->185665
+warmup   long  rep=0   ttft=2.7571s tok/s=2.2618 throttled=185665->185665
+measured short rep=1   ttft=0.1853s tok/s=2.7174 throttled=185665->185665
+measured long  rep=1   ttft=2.7160s tok/s=2.4131 throttled=185665->185665
+wrote /home/lusbe/tp/check/exp3_comp1_20261119-183421.csv
+end exp3_comp1 18:38:53 temp=60.375C competitors_alive=1/1
+
+container restored to no limits
+all 2 conditions finished
+EXIT=0

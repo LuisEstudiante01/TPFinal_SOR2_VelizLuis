@@ -1,0 +1,144 @@
+
+=== [1/15] exp1_host === 06:10:41 temp=43.25C
+container cpu.max=max 100000 cpuset=0-23
+unloading model from the other instance (port 11435)
+cold     short rep=0   ttft=1.1514s tok/s=28.02 throttled=0->0
+warmup   short rep=0   ttft=0.0724s tok/s=28.03 throttled=0->0
+warmup   long  rep=0   ttft=0.9478s tok/s=26.87 throttled=0->0
+measured short rep=1   ttft=0.0782s tok/s=27.99 throttled=0->0
+measured long  rep=1   ttft=0.9452s tok/s=26.87 throttled=0->0
+wrote /home/lusbe/tp/pilot/exp1_host_20261119-061041.csv
+end exp1_host 06:11:08 temp=58.75C
+
+=== [2/15] exp1_docker === 06:11:08 temp=58.75C
+container cpu.max=max 100000 cpuset=0-23
+unloading model from the other instance (port 11434)
+cold     short rep=0   ttft=1.1465s tok/s=27.93 throttled=9141->9141
+warmup   short rep=0   ttft=0.0789s tok/s=27.99 throttled=9141->9141
+warmup   long  rep=0   ttft=0.9602s tok/s=26.91 throttled=9141->9141
+measured short rep=1   ttft=0.0861s tok/s=27.96 throttled=9141->9141
+measured long  rep=1   ttft=0.9489s tok/s=26.93 throttled=9141->9141
+wrote /home/lusbe/tp/pilot/exp1_docker_20261119-061108.csv
+end exp1_docker 06:11:34 temp=58.75C
+
+=== [3/15] exp2_nolimit === 06:11:34 temp=58.75C
+container cpu.max=max 100000 cpuset=0-23
+cold     short rep=0   ttft=1.1907s tok/s=27.99 throttled=9141->9141
+warmup   short rep=0   ttft=0.0746s tok/s=27.99 throttled=9141->9141
+warmup   long  rep=0   ttft=0.9552s tok/s=26.84 throttled=9141->9141
+measured short rep=1   ttft=0.0788s tok/s=28.00 throttled=9141->9141
+measured long  rep=1   ttft=0.9527s tok/s=26.85 throttled=9141->9141
+wrote /home/lusbe/tp/pilot/exp2_nolimit_20261119-061134.csv
+end exp2_nolimit 06:12:01 temp=58.75C
+
+=== [4/15] exp2_cpus8 === 06:12:01 temp=58.75C
+container cpu.max=800000 100000 cpuset=0-23
+cold     short rep=0   ttft=1.2305s tok/s=17.89 throttled=9141->9216
+warmup   short rep=0   ttft=0.1145s tok/s=18.03 throttled=9216->9288
+warmup   long  rep=0   ttft=1.4371s tok/s=17.35 throttled=9288->9376
+measured short rep=1   ttft=0.1180s tok/s=18.06 throttled=9376->9448
+measured long  rep=1   ttft=1.4732s tok/s=17.50 throttled=9448->9536
+wrote /home/lusbe/tp/pilot/exp2_cpus8_20261119-061201.csv
+end exp2_cpus8 06:12:41 temp=52.875C
+
+=== [5/15] exp2_cpus4 === 06:12:41 temp=52.875C
+container cpu.max=400000 100000 cpuset=0-23
+cold     short rep=0   ttft=1.7701s tok/s=8.65 throttled=9536->9693
+warmup   short rep=0   ttft=0.2139s tok/s=8.64 throttled=9693->9843
+warmup   long  rep=0   ttft=3.0756s tok/s=8.26 throttled=9843->10029
+measured short rep=1   ttft=0.2162s tok/s=8.65 throttled=10029->10179
+measured long  rep=1   ttft=3.0060s tok/s=8.21 throttled=10179->10365
+wrote /home/lusbe/tp/pilot/exp2_cpus4_20261119-061242.csv
+end exp2_cpus4 06:14:05 temp=46.75C
+
+=== [6/15] exp2_cpus2 === 06:14:05 temp=46.75C
+container cpu.max=200000 100000 cpuset=0-23
+cold     short rep=0   ttft=2.5023s tok/s=3.81 throttled=10367->10720
+warmup   short rep=0   ttft=0.4148s tok/s=3.82 throttled=10720->11059
+warmup   long  rep=0   ttft=6.6899s tok/s=3.69 throttled=11059->11473
+measured short rep=1   ttft=0.5082s tok/s=3.86 throttled=11473->11810
+measured long  rep=1   ttft=6.6022s tok/s=3.65 throttled=11810->12227
+wrote /home/lusbe/tp/pilot/exp2_cpus2_20261119-061405.csv
+end exp2_cpus2 06:17:12 temp=43.75C
+
+=== [7/15] exp2_cpus1 === 06:17:12 temp=43.75C
+container cpu.max=100000 100000 cpuset=0-23
+cold     short rep=0   ttft=4.5991s tok/s=1.92 throttled=12229->12938
+warmup   short rep=0   ttft=1.2998s tok/s=1.93 throttled=12938->13615
+warmup   long  rep=0   ttft=14.9994s tok/s=1.81 throttled=13615->14474
+measured short rep=1   ttft=1.2992s tok/s=1.96 throttled=14474->15139
+measured long  rep=1   ttft=15.1994s tok/s=1.86 throttled=15139->15980
+wrote /home/lusbe/tp/pilot/exp2_cpus1_20261119-061712.csv
+end exp2_cpus1 06:23:28 temp=42.375C
+
+=== [8/15] exp3_comp0 === 06:23:28 temp=42.375C
+container cpu.max=max 100000 cpuset=6-11,18-23
+cold     short rep=0   ttft=1.2302s tok/s=24.53 throttled=15980->15980
+warmup   short rep=0   ttft=0.0989s tok/s=24.54 throttled=15980->15980
+warmup   long  rep=0   ttft=1.3838s tok/s=23.78 throttled=15980->15980
+measured short rep=1   ttft=0.1082s tok/s=24.54 throttled=15980->15980
+measured long  rep=1   ttft=1.3747s tok/s=23.79 throttled=15980->15980
+wrote /home/lusbe/tp/pilot/exp3_comp0_20261119-062328.csv
+end exp3_comp0 06:23:59 temp=63.625C
+
+=== [9/15] exp3_comp6 === 06:23:59 temp=63.625C
+container cpu.max=max 100000 cpuset=6-11,18-23
+started 6 stress-ng workers, nice 0, in the container cgroup
+cold     short rep=0   ttft=7.6170s tok/s=0.48 throttled=15980->15980
+warmup   short rep=0   ttft=2.1269s tok/s=1.01 throttled=15980->15980
+warmup   long  rep=0   ttft=1.3797s tok/s=23.67 throttled=15980->15980
+measured short rep=1   ttft=0.1051s tok/s=24.56 throttled=15980->15980
+Traceback (most recent call last):
+  File "/home/lusbe/tp/run_protocol.py", line 274, in <module>
+    main()
+    ~~~~^^
+  File "/home/lusbe/tp/run_protocol.py", line 262, in main
+    run_once(args, cgroup, writer, "measured", name, rep, nonce)
+    ~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/lusbe/tp/run_protocol.py", line 178, in run_once
+    final, ttft, wall = generate(args.port, prompt)
+                        ~~~~~~~~^^^^^^^^^^^^^^^^^^^
+  File "/home/lusbe/tp/run_protocol.py", line 100, in generate
+    line = resp.readline()
+  File "/usr/lib/python3.14/http/client.py", line 708, in readline
+    return super().readline(limit)
+           ~~~~~~~~~~~~~~~~^^^^^^^
+  File "/usr/lib/python3.14/http/client.py", line 700, in peek
+    return self._peek_chunked(n)
+           ~~~~~~~~~~~~~~~~~~^^^
+  File "/usr/lib/python3.14/http/client.py", line 738, in _peek_chunked
+    chunk_left = self._get_chunk_left()
+  File "/usr/lib/python3.14/http/client.py", line 584, in _get_chunk_left
+    chunk_left = self._read_next_chunk_size()
+  File "/usr/lib/python3.14/http/client.py", line 544, in _read_next_chunk_size
+    line = self.fp.readline(_MAXLINE + 1)
+  File "/usr/lib/python3.14/socket.py", line 725, in readinto
+    return self._sock.recv_into(b)
+           ~~~~~~~~~~~~~~~~~~~~^^^
+KeyboardInterrupt
+
+container restored to no limits
+Traceback (most recent call last):
+  File "/home/lusbe/tp/run_matrix.py", line 170, in <module>
+    main()
+    ~~~~^^
+  File "/home/lusbe/tp/run_matrix.py", line 151, in main
+    res = subprocess.run([sys.executable, os.path.join(HERE, "run_protocol.py"), "--condition", name,
+                          "--port", str(port), "--other-port", str(other), "--n", str(args.n),
+                          "--cgroup", measured_cg, "--out", args.out])
+  File "/usr/lib/python3.14/subprocess.py", line 557, in run
+    stdout, stderr = process.communicate(input, timeout=timeout)
+                     ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 1213, in communicate
+    self.wait()
+    ~~~~~~~~~^^
+  File "/usr/lib/python3.14/subprocess.py", line 1279, in wait
+    return self._wait(timeout=timeout)
+           ~~~~~~~~~~^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.14/subprocess.py", line 2084, in _wait
+    (pid, sts) = self._try_wait(0)
+                 ~~~~~~~~~~~~~~^^^
+  File "/usr/lib/python3.14/subprocess.py", line 2042, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+                 ~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^
+KeyboardInterrupt

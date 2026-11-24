@@ -1,0 +1,8 @@
+
+=== exp2_cpus2 === 18:28:03
+{"condition": "exp2_cpus2", "cpu_max": "200000 100000", "cpuset": "0-23", "competitors": 0, "competitor_nice": 0, "competitors_alive_at_end": 0, "window_s": 20.0, "generations_done": 1, "generator_error": "", "busy_threads": 12, "ollama_run_cpus": 1.998, "ollama_runqueue_wait_cpus": 10.001, "ollama_wait_share_pct": 83.35, "throttles_per_s": 10.0, "throttled_ms_per_s": 10000.43, "cgroup_cpus_used": 2.001, "perf_ollama_runtime_ms": 40102.696, "perf_ollama_switches": 2897.0, "perf_ollama_avg_delay_ms": 69.054, "perf_ollama_max_delay_ms": 88.474, "perf_stress_runtime_ms": 0.0, "perf_stress_switches": 0.0, "perf_stress_avg_delay_ms": 0.0, "perf_stress_max_delay_ms": 0.0, "pidstat_cpu_pct": 200.0, "pidstat_cswch_per_s": 14.4, "pidstat_nvcswch_per_s": 132.1}
+
+=== exp4_nice0 === 18:29:09
+{"condition": "exp4_nice0", "cpu_max": "max 100000", "cpuset": "6-11,18-23", "competitors": 12, "competitor_nice": 0, "competitors_alive_at_end": 12, "window_s": 20.0, "generations_done": 1, "generator_error": "", "busy_threads": 12, "ollama_run_cpus": 6.001, "ollama_runqueue_wait_cpus": 6.0, "ollama_wait_share_pct": 50.0, "throttles_per_s": 0.0, "throttled_ms_per_s": 0.0, "cgroup_cpus_used": 11.999, "perf_ollama_runtime_ms": 120097.104, "perf_ollama_switches": 40010.0, "perf_ollama_avg_delay_ms": 3.001, "perf_ollama_max_delay_ms": 11.0, "perf_stress_runtime_ms": 120037.257, "perf_stress_switches": 39863.0, "perf_stress_avg_delay_ms": 3.012, "perf_stress_max_delay_ms": 9.0, "pidstat_cpu_pct": 599.4, "pidstat_cswch_per_s": 2.9, "pidstat_nvcswch_per_s": 1994.4}
+container restored to no limits
+wrote /home/lusbe/tp/sched_extra/summary.csv

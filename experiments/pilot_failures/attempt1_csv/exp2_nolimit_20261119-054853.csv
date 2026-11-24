@@ -1,0 +1,6 @@
+condition,run_type,prompt,rep,timestamp,ttft_client_s,prompt_eval_count,prompt_eval_s,eval_count,eval_s,tokens_per_s,load_s,total_s,wall_s,nr_throttled_before,nr_throttled_after,throttled_usec_before,throttled_usec_after,cpu_usec_delta
+exp2_nolimit,cold,short,0,2026-11-19T05:48:59,1.1882,47,0.1206,128,4.5656,28.04,1.0655,5.7529,5.7540,0,0,0,0,0
+exp2_nolimit,warmup,short,0,2026-11-19T05:49:04,0.0755,47,0.0692,128,4.5748,27.98,0.0004,4.6495,4.6508,0,0,0,0,0
+exp2_nolimit,warmup,long,0,2026-11-19T05:49:09,0.9602,516,0.9542,128,4.7471,26.96,0.0005,5.7066,5.7080,0,0,0,0,0
+exp2_nolimit,measured,short,1,2026-11-19T05:49:14,0.0785,47,0.0668,128,4.5668,28.03,0.0004,4.6445,4.6454,0,0,0,0,0
+exp2_nolimit,measured,long,1,2026-11-19T05:49:20,0.9568,516,0.9510,128,4.7453,26.97,0.0004,5.7014,5.7032,0,0,0,0,0

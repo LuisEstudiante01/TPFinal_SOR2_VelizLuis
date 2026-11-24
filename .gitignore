@@ -1,0 +1,9 @@
+.atl/
+__pycache__/
+*.pyc
+.DS_Store
+.venv/
+docs/informe/build/*
+!docs/informe/build/TPFinal_SOR2_2026_2s_VelizLuis.docx
+odd/
+~$*

@@ -1,0 +1,6 @@
+condition,run_type,prompt,rep,timestamp,ttft_client_s,prompt_eval_count,prompt_eval_s,eval_count,eval_s,tokens_per_s,load_s,total_s,wall_s,nr_throttled_before,nr_throttled_after,throttled_usec_before,throttled_usec_after,cpu_usec_delta
+exp1_docker,cold,short,0,2026-11-19T05:48:32,1.1433,47,0.1151,128,4.5753,27.98,1.0262,5.7179,5.7187,0,0,0,0,0
+exp1_docker,warmup,short,0,2026-11-19T05:48:37,0.0722,47,0.0672,128,4.5756,27.97,0.0004,4.6471,4.6481,0,0,0,0,0
+exp1_docker,warmup,long,0,2026-11-19T05:48:43,0.9581,516,0.9505,128,4.7689,26.84,0.0004,5.7265,5.7280,0,0,0,0,0
+exp1_docker,measured,short,1,2026-11-19T05:48:47,0.0784,47,0.0668,128,4.5665,28.03,0.0004,4.6442,4.6452,0,0,0,0,0
+exp1_docker,measured,long,1,2026-11-19T05:48:53,0.9599,516,0.9536,128,4.7780,26.79,0.0004,5.7372,5.7387,0,0,0,0,0

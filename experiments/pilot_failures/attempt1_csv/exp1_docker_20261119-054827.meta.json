@@ -1,0 +1,25 @@
+{
+  "condition": "exp1_docker",
+  "port": 11435,
+  "n_per_prompt": 1,
+  "model": "llama3.2:3b",
+  "model_digest": "a80c4f17acd55265feec403c7aef86be0c25983ab279d83f3bcd3abbcb5b8b72",
+  "options": {
+    "temperature": 0,
+    "seed": 1,
+    "num_predict": 128,
+    "num_ctx": 4096
+  },
+  "ollama_version": "0.40.16",
+  "kernel": "7.0.0-43-generic",
+  "governor": [
+    "performance"
+  ],
+  "cgroup": "/sys/fs/cgroup/system.slice/ollama.service",
+  "prompts_chars": {
+    "short": 83,
+    "long": 2476
+  },
+  "started": "2026-11-19T05:48:27",
+  "finished": "2026-11-19T05:48:53"
+}
