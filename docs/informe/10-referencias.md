@@ -20,9 +20,9 @@ Docker. (s. f.-e). *Running containers*. Docker Docs. Recuperado el 22 de noviem
 
 Docker. (s. f.-f). *Seccomp security profiles for Docker*. Docker Docs. Recuperado el 22 de noviembre de 2026, de <https://docs.docker.com/engine/security/seccomp/>
 
-ggml-org. (s. f.). *llama.cpp* [Repositorio de código]. GitHub. Recuperado el 22 de noviembre de 2026, de <https://github.com/ggml-org/llama.cpp>
-
 Gentleman Programming. (s. f.). *Gentle Shell: ecosistema Gentle AI para agentes de programación* [Software]. GitHub. Recuperado el 23 de noviembre de 2026, de <https://github.com/Gentleman-Programming/gentle-shell>
+
+ggml-org. (s. f.). *llama.cpp* [Repositorio de código]. GitHub. Recuperado el 22 de noviembre de 2026, de <https://github.com/ggml-org/llama.cpp>
 
 Giallorenzo, S., Mauro, J., Poulsen, M. G., y Siroky, F. (2021). Virtualization costs: Benchmarking containers and virtual machines against bare-metal. *SN Computer Science, 2*(5), Artículo 404. <https://doi.org/10.1007/s42979-021-00781-8>
 

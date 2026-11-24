@@ -192,7 +192,7 @@ const chartBase = (extra) => Object.assign({
         { x: x + 0.06, y: y + D + 0.04, w: CW - 0.12, h: role ? 0.42 : 0.26, fontSize: role ? 10 : 11, color: TEXT, align: "center", valign: "top" });
     }
   }
-  s.addNotes("Este es el stack, de abajo hacia arriba. La plataforma es una PC dedicada con Ubuntu Server 26.04 LTS, kernel 7.0 con el scheduler EEVDF y un Ryzen 9 9900X de 12 núcleos; todo se midió en Linux nativo, sin máquina virtual. Para la inferencia usé Ollama 0.40.16 con el modelo llama3.2:3b cuantizado (Q4), solo CPU. Docker 29.10.0 aísla a Ollama y escribe los límites de cgroups v2 (cpu.max); nice ajusta la prioridad. La carga competidora la genera stress-ng 0.20.01 con matrixprod, fijado a las mismas CPUs. Para medir, la API de Ollama devuelve los tiempos con los que calculo TTFT y tokens por segundo, y cpu.stat, perf sched, pidstat y schedstat muestran lo que hace el kernel. El análisis está en Python con pandas, scipy y matplotlib. Para organizar el trabajo usé Notion para las tareas y Obsidian para las notas. Además trabajé con dos asistentes de IA con roles separados: Claude Opus 5.5 como orquestador, que planifica y escribe el código y el texto a partir del SPEC, y Gemini 4 Neon como auditor, que solo lee y verifica que lo entregado cumpla el SPEC, con evidencia. Los dos trabajaron dentro del ecosistema Gentle AI, que organiza el flujo de trabajo: tareas, subagentes, memoria entre sesiones y revisión. Las decisiones y las mediciones son mías. La justificación de cada elección frente a sus alternativas está en la Tabla 5.4 del informe.");
+  s.addNotes("Este es el stack, de abajo hacia arriba. La plataforma es una PC dedicada con Ubuntu Server 26.04 LTS, kernel 7.0 con el scheduler EEVDF y un Ryzen 9 9900X de 12 núcleos; todo se midió en Linux nativo, sin máquina virtual. Para la inferencia usé Ollama 0.40.16 con el modelo llama3.2:3b cuantizado (Q4), solo CPU. Docker 29.10.0 aísla a Ollama y escribe los límites de cgroups v2 (cpu.max); nice ajusta la prioridad. La carga competidora la genera stress-ng 0.20.01 con matrixprod, fijado a las mismas CPUs. Para medir, la API de Ollama devuelve los tiempos con los que calculo TTFT y tokens por segundo, y cpu.stat, perf sched, pidstat y schedstat muestran lo que hace el kernel. El análisis está en Python con pandas, scipy y matplotlib. Para organizar el trabajo usé Notion para las tareas y Obsidian para las notas. Además trabajé con dos asistentes de IA con roles separados: Claude Opus 5.5 como orquestador, que ayuda a organizar las tareas y redacta borradores de código y texto que yo dirijo, reviso y apruebo, y Gemini 4 Neon como auditor, que solo lee y verifica que lo entregado cumpla la especificación, con evidencia. Los dos trabajaron dentro del ecosistema Gentle AI, que organiza el flujo de trabajo: tareas, agentes auxiliares, memoria entre sesiones y revisión. Las decisiones y las mediciones son mías. La justificación de cada elección frente a sus alternativas está en la Tabla 5.4 del informe.");
 }
 
 // 3 — EEVDF y nice
@@ -251,7 +251,7 @@ const chartBase = (extra) => Object.assign({
     txt(s, c[3], { x: x + 0.1, y: 3.3, w: 2.65, h: 0.32, fontSize: 14, bold: true, color: c[2] === GREY ? PALE : c[2], align: "center", valign: "middle" });
     c[4].forEach((t, k) => txt(s, t, { x: x + 0.2, y: 3.75 + k * 0.62, w: 2.45, h: 0.55, fontSize: 13, color: PALE, align: "center", valign: "middle" }));
   }
-  s.addNotes("Por qué EEVDF y no otro scheduler. Es la decisión D7 del trabajo y se argumenta en la sección 4.1.6 del informe. CFS, el planificador anterior, fue reemplazado por EEVDF desde el kernel 6.6; en el kernel 7.0 que uso ya no existe. Medir CFS exigiría otro kernel, 6.5 o anterior, y eso cambiaría a la vez el scheduler, los drivers y el resto del sistema: la comparación quedaría confundida. Por eso CFS lo trato solo en la teoría. EEVDF es lo que usa la inferencia en la práctica: Ollama corre por defecto con SCHED_OTHER, que es la clase normal, equitativa; reparte según el peso de nice y es compatible con el límite cpu.max de cgroups v2, que son justo las variables que estudio. SCHED_FIFO y SCHED_RR son políticas de tiempo real, pensadas para tareas con plazos estrictos: no son equitativas, no responden a nice y escapan a cpu.max. En una prueba exploratoria corta (Exp 5, N = 5 por prompt, sin tests de hipótesis) vi las dos cosas: con un competidor de tiempo real Ollama bajó a 0,48 a 0,61 tokens/s, contra 2,45 a 2,54 con un competidor normal; y con los hilos de Ollama en SCHED_RR, el contenedor limitado a 2 CPUs usó 12,01 CPUs y no tuvo ningún throttle. No digo que sean peores: para lo que fueron diseñados son la opción correcta, simplemente no encajan con la pregunta ni con las herramientas de control. Quedan como trabajo futuro, como recomendó el docente.");
+  s.addNotes("Por qué EEVDF y no otro scheduler. Se argumenta en la sección 4.1.6 del informe. CFS, el planificador anterior, fue reemplazado por EEVDF desde el kernel 6.6; en el kernel 7.0 que uso ya no existe. Medir CFS exigiría otro kernel, 6.5 o anterior, y eso cambiaría a la vez el scheduler, los drivers y el resto del sistema: la comparación quedaría confundida. Por eso CFS lo trato solo en la teoría. EEVDF es lo que usa la inferencia en la práctica: Ollama corre por defecto con SCHED_OTHER, que es la clase normal, equitativa; reparte según el peso de nice y es compatible con el límite cpu.max de cgroups v2, que son justo las variables que estudio. SCHED_FIFO y SCHED_RR son políticas de tiempo real, pensadas para tareas con plazos estrictos: no son equitativas, no responden a nice y escapan a cpu.max. En una prueba exploratoria corta (Exp 5, N = 5 por prompt, sin tests de hipótesis) vi las dos cosas: con un competidor de tiempo real Ollama bajó a 0,48 a 0,61 tokens/s, contra 2,45 a 2,54 con un competidor normal; y con los hilos de Ollama en SCHED_RR, el contenedor limitado a 2 CPUs usó 12,01 CPUs y no tuvo ningún throttle. No digo que sean peores: para lo que fueron diseñados son la opción correcta, simplemente no encajan con la pregunta ni con las herramientas de control. Quedan como trabajo futuro, como recomendó el docente.");
 }
 
 // 4 — cgroups cpu.max
@@ -278,6 +278,7 @@ const chartBase = (extra) => Object.assign({
   txt(s, "0", { x: X0, y: 3.95, w: 0.6, h: 0.25, fontSize: 11, color: MUTED });
   txt(s, "16,7 ms", { x: X0 + run - 0.4, y: 3.95, w: 0.8, h: 0.25, fontSize: 11, color: MUTED, align: "center" });
   txt(s, "100 ms", { x: X0 + W - 1.0, y: 3.95, w: 1.0, h: 0.25, fontSize: 11, color: MUTED, align: "right" });
+  txt(s, "Throttling", { x: 4.45, y: 3.86, w: 5.0, h: 0.4, fontSize: 18, color: PALE }); // agregado por Luis en PowerPoint
   await badge(s, lu.LuCreditCard, 0.5, 4.4, 0.55, VIOLET, "Tarjeta prepaga");
   txt(s, "Una tarjeta prepaga que 12 hilos gastan a la vez", { x: 1.2, y: 4.4, w: 8.3, h: 0.55, fontSize: 16, color: WHITE, valign: "middle" });
   s.addNotes("Los cgroups v2 permiten limitar la CPU de un grupo de procesos con el archivo cpu.max: se define un presupuesto de tiempo de CPU por período de 100 ms. Una cuota de 2 CPUs equivale a 200 ms de CPU por período. El presupuesto es del grupo entero: como Ollama usa 12 hilos en paralelo, gasta 12 ms de CPU por cada milisegundo real y agota los 200 ms en unos 16,7 ms (200 / 12). Entonces el kernel frena al grupo completo (throttling) hasta que empieza el siguiente período, unos 83 ms después, aunque haya CPUs libres. La barra del medio está a escala. En las mediciones se vio exactamente eso: 10 throttles por segundo con cuotas de 4, 2 y 1 CPUs, y la demora máxima en cola llegó casi a 100 ms. Docker usa este mismo mecanismo para sus límites de CPU.");
@@ -347,9 +348,9 @@ const chartBase = (extra) => Object.assign({
 {
   const s = pres.addSlide({ masterName: "MAIN" });
   title(s, "O3: un solo rival hunde el rendimiento");
-  s.addChart(pres.charts.BAR, [{ name: "tokens/s", labels: ["0", "1", "2", "3"], values: [23.74, 2.45, 0.74, 0.53] }],
+  s.addChart(pres.charts.BAR, [{ name: "tokens/s", labels: ["0", "1", "2 (N = 10)", "3 (N = 10)"], values: [23.74, 2.45, 0.74, 0.53] }],
     chartBase({ x: 0.5, y: 1.4, w: 4.5, h: 3.6, barDir: "col", chartColors: [GREY, RED, RED, RED], valAxisMinVal: 0, valAxisMaxVal: 28, valAxisMajorUnit: 7,
-      title: "Tokens/s según nº de rivales" }));
+      title: "Tokens/s según nº de rivales (prompt largo)" }));
   await badge(s, lu.LuUsers, 5.3, 1.45, 0.85, RED, "Un rival");
   txt(s, "−90 %", { x: 6.3, y: 1.35, w: 3.2, h: 1.05, fontFace: HF, fontSize: 60, bold: true, color: RED, valign: "middle" });
   card(s, 5.3, 2.7, 4.2, 2.3);
@@ -372,7 +373,7 @@ const chartBase = (extra) => Object.assign({
   title(s, "O3: nice ayuda, pero la cuota manda");
   s.addChart(pres.charts.BAR, [{ name: "tokens/s", labels: ["nice 0 (N = 10)", "nice 10", "nice 19", "nice 19 + 2 CPUs", "Sin rivales"], values: [0.47, 9.53, 20.59, 2.83, 23.74] }],
     chartBase({ x: 0.5, y: 1.4, w: 6.2, h: 3.6, barDir: "col", chartColors: [RED, AMBER, GREEN, TEAL, GREY], valAxisMinVal: 0, valAxisMaxVal: 28, valAxisMajorUnit: 7,
-      title: "Tokens/s con 12 rivales según su nice", catAxisLabelFontSize: 11 }));
+      title: "Tokens/s con 12 rivales según su nice (prompt largo)", catAxisLabelFontSize: 11 }));
   card(s, 7.0, 1.4, 2.5, 1.65);
   await badge(s, lu.LuScale, 7.95, 1.5, 0.6, GREEN, "nice");
   txt(s, "0,47 → 20,59", { x: 7.0, y: 2.15, w: 2.5, h: 0.5, fontFace: HF, fontSize: 24, bold: true, color: GREEN, align: "center", valign: "middle" });
@@ -390,7 +391,7 @@ const chartBase = (extra) => Object.assign({
   title(s, "O4: el scheduler muestra el mecanismo");
   s.addChart(pres.charts.BAR, [{ name: "% del tiempo", labels: ["Sin límite", "4 CPUs", "2 CPUs", "1 CPU", "1 rival", "nice 19 + 2 CPUs"], values: [0.0, 66.7, 83.4, 91.7, 7.7, 88.9] }],
     chartBase({ x: 0.5, y: 1.4, w: 6.2, h: 3.6, barDir: "col", chartColors: [GREY, TEAL, TEAL, TEAL, RED, TEAL], valAxisMinVal: 0, valAxisMaxVal: 100, valAxisMajorUnit: 25,
-      title: "% del tiempo esperando en cola", dataLabelFormatCode: "#,##0.0", catAxisLabelFontSize: 11 }));
+      title: "% del tiempo esperando en cola (prompt largo)", dataLabelFormatCode: "#,##0.0", catAxisLabelFontSize: 11 }));
   card(s, 7.0, 1.4, 2.5, 1.65, STRONG);
   await badge(s, lu.LuOctagonX, 7.95, 1.5, 0.6, AMBER, "Throttles");
   txt(s, "10 / s", { x: 7.0, y: 2.15, w: 2.5, h: 0.5, fontFace: HF, fontSize: 28, bold: true, color: AMBER, align: "center", valign: "middle" });
