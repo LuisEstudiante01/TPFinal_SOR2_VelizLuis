@@ -15,11 +15,11 @@ Orden de la charla: la pregunta, por qué importa, con qué trabajamos y por qu�
 | 7 | Por qué EEVDF | 35 s |
 | 8 | El límite de CPU: cgroups v2 | 55 s |
 | 9 | Qué hice | 35 s |
-| 10 | O1: Docker rinde igual que el host | 30 s |
+| 10 | O1: host y Docker, medias cercanas | 30 s |
 | 11 | O2: la cuota se paga en velocidad | 45 s |
 | 12 | O3: un solo rival hunde el rendimiento | 45 s |
 | 13 | O3: nice ayuda, pero la cuota manda | 50 s |
-| 14 | O4: el scheduler muestra el mecanismo | 45 s |
+| 14 | O4: qué registra el scheduler | 45 s |
 | 15 | Conclusiones | 40 s |
 
 Total: 10 min (600 s).
@@ -141,23 +141,23 @@ Total: 10 min (600 s).
 
 [Señalá los cuatro números grandes] «En total, **780 corridas, 15 condiciones y 4 experimentos**, medidos en **10 horas y cuarto**. Cada condición se repitió 30 veces, o 10 en tres casos muy lentos.»
 
-## 10. O1: Docker rinde igual que el host (~30 s)
+## 10. O1: host y Docker, medias cercanas (~30 s)
 **Qué es:** resultado del objetivo 1; compara Ollama en el host contra Ollama en Docker, sin límites.
 
 «El primer objetivo: comparar Ollama en Linux con Ollama en Docker, sin límites.»
 
-[Señalá el número «< 1 %» y el gráfico] «La diferencia fue menor al 1 %: 26,84 contra 26,81 tokens por segundo.»
+[Señalá el número «< 1 %» y el gráfico] «Comparé medias de 30 corridas cada una: 26,84 contra 26,81 tokens por segundo. En este montaje las medias medidas son muy cercanas; no digo que el costo sea cero.»
 
-«Un contenedor **no es una máquina virtual**: son procesos del mismo kernel. Por eso pude usar Docker para aplicar las cuotas.»
+«Un contenedor **no es una máquina virtual**: son procesos del mismo kernel. Por eso pude usar Docker para aplicar las cuotas. Otros costos, como red o disco, no los medí.»
 
 ## 11. O2: la cuota se paga en velocidad (~45 s)
 **Qué es:** resultado del objetivo 2; muestra cómo cae la velocidad al bajar la cuota de CPU.
 
 «El segundo objetivo: limitar la CPU con `cpu.max`.»
 
-[Recorré las barras] «Sin límite hay 26,8 tokens por segundo. Con 8 CPUs, 17,3; con 4, 8,3; con 2, 3,6; con 1, 1,8.»
+[Señalá el subtítulo y recorré las barras] «Ojo: la cuota es tiempo de CPU equivalente, no cuántas CPUs puede usar. Medias de 30 corridas: sin cuota, 26,8 tokens por segundo; con 8 CPUs equivalentes, 17,3; con 4, 8,3; con 2, 3,6; con 1, 1,8.»
 
-[Señalá el «÷ 2» y el «−93 %»] «Con 4 CPUs o menos, cada vez que la cuota se reduce a la mitad, la velocidad cae aproximadamente a la mitad. Con 1 CPU cae un **93 %**, y la espera hasta la primera palabra se multiplica por 16: de casi 1 segundo a **15 segundos**.»
+[Señalá el «÷ 2» y el «−93 %»] «Con 4 CPUs o menos, cada vez que la cuota se reduce a la mitad, la velocidad cae aproximadamente a la mitad. Con 1 CPU equivalente cae un **93 %** y la espera media hasta la primera palabra se multiplica por 16: de casi 1 segundo a **15 segundos**.»
 
 «El kernel registra *throttling* en todas las cuotas. **Confirma H1**.»
 
@@ -166,54 +166,52 @@ Total: 10 min (600 s).
 
 «El tercer objetivo: la competencia. Agregué procesos que consumen CPU, con la misma prioridad que Ollama.»
 
-[Señalá el «−90 %» y el gráfico] «Con un solo competidor la velocidad cae un **90 %**: de 23,7 a 2,5 tokens por segundo. Con 2 y 3 competidores baja a 0,7 y 0,5.»
+[Señalá el «−90 %» y el gráfico] «Con un solo competidor la velocidad media cae un **90 %**: de 23,7 a 2,5 tokens por segundo. Con 2 y 3 competidores baja a 0,7 y 0,5, con 10 corridas en cada una.»
 
 «Es mucho más de lo esperable: el competidor solo le saca una pequeña parte de la CPU.»
 
-[Señalá el diagrama de barras: el hilo rojo largo y los hilos que esperan] «Mi **hipótesis**, que no está demostrada, es que los 12 hilos se sincronizan en cada paso. Si uno solo comparte su CPU con el competidor, los otros 11 lo esperan. La cadena va al ritmo del eslabón más lento.»
+[Señalá el diagrama de barras: el hilo rojo largo y los hilos que esperan] «Una **hipótesis**, que no probé, es que los 12 hilos se sincronizan en cada paso: si uno comparte su CPU con el competidor, los otros 11 podrían esperarlo. Es una idea para probar variando los hilos, no una explicación establecida.»
 
-«Además la variabilidad crece mucho. **Confirma H2**.»
+«Además la variabilidad crece mucho. **Respalda H2**.»
 
 ## 13. O3: nice ayuda, pero la cuota manda (~50 s)
 **Qué es:** completa el objetivo 3 con la prioridad; compara los distintos `nice` de 12 competidores y el caso con cuota.
 
 «Después repetí con 12 competidores, cambiando su prioridad.»
 
-[Recorré las barras] «Promedios:
+[Recorré las barras] «Primero, sin cuota y con 12 rivales. Medias:
 
 - nice 0: 0,47 tokens por segundo (esta condición tiene 10 corridas);
 - nice 10: 9,5;
-- nice 19: **20,6**, casi lo mismo que sin competencia, 23,7.
+- nice 19: **20,6**; la barra gris aparte es la referencia sin rivales, 23,7.
 
 O sea, **`nice` ayuda mucho**.»
 
-[Señalá la tarjeta de abajo a la derecha, 2,83] «Pero con los competidores y una cuota de 2 CPUs, Ollama rinde solo **2,83**, menos que con esa cuota y sin competidores: 3,61. La cuota se aplica al **grupo entero**; la prioridad solo reparte lo que queda adentro de ese límite.»
+[Señalá la tarjeta de abajo a la derecha] «Segundo, la comparación controlada de la cuota: con el mismo conjunto de CPUs y los mismos rivales en nice 19, agregar la cuota de 2 CPUs bajó la media de 20,59 a **2,83 tokens/s**. Por eso la cuota manda sobre `nice`. Ojo: en el experimento 2, con la misma cuota, medí 3,61, pero con 24 CPUs lógicas en vez de 12 y sin rivales; **no puedo atribuir esa diferencia solo a la competencia**.»
 
-«Con tres corridas muy lentas; igual la mediana, 2,93, queda debajo de 3,61. **Confirma H3**.»
+## 14. O4: qué registra el scheduler (~45 s)
+**Qué es:** resultado del objetivo 4; dos comparaciones separadas de lo que ve el kernel (tiempo en cola y frenadas), con una captura de 20 s por condición, aparte de las corridas de rendimiento.
 
-## 14. O4: el scheduler muestra el mecanismo (~45 s)
-**Qué es:** resultado del objetivo 4; relaciona lo medido con lo que ve el kernel (tiempo en cola y frenadas).
+«El cuarto objetivo: mirar adentro del scheduler. Con `perf` medí qué porción del tiempo ejecutable, corriendo más esperando, los hilos de Ollama pasan **en la cola**. Una captura de 20 segundos por condición, aparte de las corridas de velocidad.»
 
-«El cuarto objetivo: mirar adentro del scheduler. Con `perf` medí cuánto esperan los hilos de Ollama **en la cola** para usar la CPU.»
+[Señalá el gráfico de la izquierda] «Exp. 2, solo cuota y sin rivales: sin cuota, casi 0 %; con 4, 2 y 1 CPUs equivalentes, 67 %, 83 % y 92 %. El kernel registra **10 frenos por segundo**, uno por período de 100 ms, como en la teoría.»
 
-[Recorré las barras] «Sin límite, casi 0 %. Con cuota, entre 67 % y 92 %. Con nice 19 y 2 CPUs, 89 %.»
+[Señalá el gráfico de la derecha y la tarjeta] «Exp. 3, sin cuota y en el mismo cpuset: de cero a un rival, la espera pasa de 0,07 % a **7,65 %**. El rival usa en promedio 0,91 CPU. La velocidad, medida aparte, cae de 23,74 a 2,45 tokens por segundo.»
 
-[Señalá el «10 / s»] «El kernel registra **10 frenos por segundo**: uno por cada período de 100 ms, como en la teoría.»
-
-[Señalá el «7,7 %»] «Con un competidor, los hilos esperan solo el **7,7 %** del tiempo y aun así la velocidad cae 90 %. No falta CPU: los hilos se frenan entre sí. Eso refuerza la hipótesis de la sincronización.»
+«La espera medida es baja y la velocidad cae mucho. Eso es compatible con la hipótesis de sincronización, que sigue sin probarse.»
 
 ## 15. Conclusiones (~40 s)
 **Qué es:** cierra con tres ideas y una cifra cada una; termina con la apertura a preguntas.
 
 [Señalá las tres tarjetas, de izquierda a derecha] «Tres ideas:
 
-1. **Los contenedores no cuestan CPU** (≈ 0 %): Docker rinde igual que Linux directo.
-2. **La cuota se cumple con exactitud y manda**: la velocidad cae en proporción, y un poco más.
+1. **Docker ≈ host en CPU** (< 1 % entre medias): en este montaje rinden casi igual; no digo que el costo sea cero.
+2. **La cuota se cumple y manda**: la velocidad cae aproximadamente en proporción, y un poco más.
 3. **La competencia pesa mucho más de lo esperado** (−90 % con un solo rival): `nice` ayuda, pero un límite estricto de CPU manda sobre la prioridad.»
 
-«Limitaciones: una máquina, un modelo, una configuración de hilos. Futuro: variar los hilos para probar la hipótesis.»
+«Limitaciones: una máquina, un modelo, una configuración de hilos. Futuro: variar los hilos para probar la hipótesis de sincronización.»
 
-[Señalá las tres etiquetas de abajo] «Se cumplió O1; se confirmaron H1, H2 y H3, y H2 con un efecto mucho mayor del que esperaba.»
+[Señalá las tres etiquetas de abajo] «Se cumplió O1. Los resultados respaldan H1, H2 y H3, pero no aíslan el efecto de competir bajo la cuota de 2 CPUs.»
 
 [Señalá «¿Preguntas?»] «Gracias. ¿Preguntas?»
 
@@ -239,9 +237,9 @@ O sea, **`nice` ayuda mucho**.»
 
 - **«¿Por qué EEVDF y no CFS?»** CFS fue reemplazado por EEVDF desde el kernel 6.6; en el kernel 7.0 que medí ya no existe. Medirlo exigiría otro kernel (6.5 o anterior), y eso cambiaría a la vez el scheduler, los drivers y el resto del sistema: la comparación quedaría confundida. Por eso CFS se trata solo en la teoría (sección 4.1.6). Además EEVDF es lo que usa Ollama por defecto.
 - **«¿Por qué no SCHED_FIFO o SCHED_RR?»** Son políticas de tiempo real: no reparten la CPU de forma equitativa, no responden a `nice` y escapan al límite de `cpu.max`, que son las variables que estudio. Las probé en una prueba exploratoria corta (N = 5, sin tests): un competidor en FIFO o RR dejó a Ollama en 0,48 a 0,61 tokens/s, contra 2,45 a 2,54 con uno normal; y con Ollama en RR y cuota de 2 CPUs, el contenedor usó 12,01 CPUs sin ningún throttle (sección 4.1.7). No digo que sean peores; para lo que fueron diseñadas son la opción correcta. Quedan como trabajo futuro, como recomendó el docente.
-- **«¿Cómo sabés que la sincronización es la causa?»** No lo sé con certeza; es una hipótesis coherente con los datos. Con un competidor, los hilos esperan en cola solo el 7,7 % del tiempo y sin throttling, y aun así la velocidad cae 90 %. Para probarla habría que variar la cantidad de hilos, y eso queda como trabajo futuro.
+- **«¿Cómo sabés que la sincronización es la causa?»** No lo sé con certeza; es una hipótesis coherente con los datos. Con un competidor, los hilos esperan en cola solo el 7,65 % de su tiempo ejecutable (una captura de 20 s) y sin throttling, y aun así la velocidad media cae 90 %. Para probarla habría que variar la cantidad de hilos, y eso queda como trabajo futuro.
 - **«¿Por qué solo CPU?»** Es una decisión de alcance: lo que estudio es cómo el scheduler de Linux reparte la CPU. Otros motores, como vLLM, están orientados a GPU y quedan fuera de ese alcance. Es una limitación: los resultados valen para inferencia en CPU.
 - **«¿Por qué llama3.2:3b?»** Porque es liviano: pesa unos 2 GB y ronda los 28 tokens/s en una prueba de humo (2 corridas), lo que permite más repeticiones. Un modelo de 7 u 8 mil millones haría muy lentas las cuotas estrictas del experimento 2 (estimación mía). Mido latencia, no calidad de respuesta. Es una limitación: un solo modelo.
-- **«¿Docker agrega overhead?»** En CPU, no: sin límites la diferencia con el host fue menor al 1 % (26,84 contra 26,81 tokens/s en el prompt largo; −0,1 % a +0,7 %). Un contenedor son procesos del mismo kernel, no una máquina virtual. Sí puede haber costo en red, disco o arranque, pero eso no lo medí.
+- **«¿Docker agrega overhead?»** En CPU, en este montaje no medí un costo apreciable: sin límites las medias difirieron menos del 1 % (26,84 contra 26,81 tokens/s en el prompt largo, N = 30; −0,1 % a +0,7 %), sin afirmar que el costo sea cero. Un contenedor son procesos del mismo kernel, no una máquina virtual. Sí puede haber costo en red, disco o arranque, pero eso no lo medí.
 - **«¿Por qué N = 10 en algunas condiciones?»** Con dos o más competidores Ollama cae por debajo de 1 token/s y una condición con N = 30 tardaba entre 3 y 6 horas. Por eso, con aprobación mía, `exp3_comp2`, `exp3_comp3` y `exp4_nice0` se corrieron con N = 10: 12 condiciones con 30 repeticiones y 3 con 10, por dos prompts, son 780 corridas. El efecto es enorme (30 a 50 veces más lento) y 10 corridas bastan para distinguirlo, con intervalos angostos. Lo que se pierde es precisión en el P95, que en esas condiciones es orientativo. Está declarado como limitación.
 - **«¿Qué hicieron las IA y qué hiciste vos?»** Usé dos asistentes con roles separados. Claude Opus 5.5 fue el orquestador: me ayudó a organizar las tareas y redactó borradores de código, scripts y texto que yo dirigí, revisé, corregí y aprobé. Gemini 4 Neon fue el auditor: solo leía y verificaba que lo entregado cumpliera la especificación del trabajo, y dejaba un informe con evidencia. Separarlos evita que el mismo asistente apruebe su propio trabajo. Los dos trabajaron dentro del ecosistema Gentle AI. Las decisiones, las mediciones y la responsabilidad del resultado son mías.

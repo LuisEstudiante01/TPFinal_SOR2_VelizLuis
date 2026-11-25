@@ -58,7 +58,7 @@ La capa de servicios es la que traduce las órdenes del usuario en configuració
 
 ## 6.5. Capa de aplicaciones
 
-**`llama-server`.** Es el proceso que calcula la inferencia. Arranca 12 hilos de cómputo (`n_threads = 12`), que se sincronizan en cada paso; por eso fijarlo a menos CPUs que hilos lo traba (incidencia I3, sección 7.4) y un solo competidor de igual prioridad reduce su rendimiento a una fracción (I4, sección 7.4). Es una propiedad de la aplicación, no del kernel, pero determina cómo responde a las cuotas y a la competencia, y por eso la relación entre hilos y CPUs es una variable más del banco.
+**`llama-server`.** Es el proceso que calcula la inferencia. Arranca 12 hilos de cómputo (`n_threads = 12`). En el piloto se observó una caída de rendimiento al restringir las CPUs disponibles (I3) y también con un solo competidor de igual prioridad (I4, sección 7.4). La sincronización entre hilos podría amplificar el efecto de esas demoras, pero no se midieron las esperas en las barreras de `llama.cpp`.
 
 **`stress-ng`.** Genera los competidores con `--cpu N --cpu-method matrixprod`, lanzados con `nice` y `taskset` (`run_matrix.py`, línea 181). Sus procesos se verifican a los 3 s, al final de cada condición y, durante la corrida completa, con el vigilante `watch_competitors.sh`, que los cuenta en `cgroup.procs` del contenedor cada 15 s (sección 5.6).
 

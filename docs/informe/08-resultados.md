@@ -31,9 +31,9 @@ Fuente: `experiments/analysis/summary.md` (sección `exp1`). En las cuatro condi
 
 ![Figura 8.1. Ollama en host y en Docker, TTFT y tokens/s por prompt. Valores rotulados: medianas. Fuente: elaboración propia a partir de experiments/results/.](figuras/resultados/exp1_host_docker.png)
 
-**Efecto y significancia.** Docker difiere del host en −0,1 % y +0,7 % (TTFT corto y largo) y en +0,0 % y −0,1 % (tokens/s). Welch no detecta diferencia (p sin ajustar = 0,83 y 0,15 en TTFT; 0,86 y 0,55 en tokens/s; con el ajuste de Holm, p = 1,0 en tres de las cuatro comparaciones y 0,61 en TTFT largo). Mann-Whitney sí en tokens/s (p Holm = 6,1e-06 y 4e-06) y TTFT largo (2,5e-06), con deltas de Cliff de −0,77, −0,79 y +0,80: con CV inferior a 3 %, el test de rangos detecta ordenamientos de centésimas de token por segundo sin consecuencia práctica.
+**Efecto y significancia.** Docker difiere del host en −0,1 % y +0,7 % (TTFT corto y largo) y en +0,0 % y −0,1 % (tokens/s). Welch no detecta diferencia (p sin ajustar = 0,83 y 0,15 en TTFT; 0,86 y 0,55 en tokens/s; con el ajuste de Holm, p = 1,0 en tres de las cuatro comparaciones y 0,61 en TTFT largo). Mann-Whitney sí en tokens/s (p Holm = 6,1e-06 y 4e-06) y TTFT largo (2,5e-06), con deltas de Cliff de −0,77, −0,79 y +0,80: con CV inferior a 3 %, el test de rangos detecta ordenamientos sistemáticos aunque las medias difieran poco (centésimas de token por segundo). Como no se fijó un margen de equivalencia, la falta de significancia de Welch no se toma como prueba de equivalencia.
 
-**Interpretación.** Un contenedor no virtualiza la CPU: son procesos del mismo kernel aislados con namespaces y limitados con cgroups, por lo que sin límites la ausencia de sobrecosto es lo esperado; su costo aparece en otras capas (red, disco, arranque) que esta medición no ejercita. La única diferencia es de variabilidad: P95 de TTFT largo de 1,019 s en el host frente a 0,961 s en Docker (CV 2,7 % frente a 0,3 %), atribuible a unas pocas corridas lentas cuya causa no se investigó. La equivalencia justifica usar el contenedor, donde `docker update` permite imponer cuotas.
+**Interpretación.** En el mismo equipo Linux (Ryzen 9 9900X), con Ollama y `llama3.2:3b` en CPU, los prompts corto y largo del protocolo, sin cuotas adicionales ni `stress-ng`, las medias de TTFT y tokens/s difirieron menos del 1 % entre host y Docker (N = 30 por condición y prompt). Eso no demuestra equivalencia ni permite extrapolar a otras cargas o entornos. Además de las diferencias detectadas por Mann-Whitney, el TTFT largo presentó un P95 de 1,019 s en el host frente a 0,961 s en Docker (CV de 2,7 % frente a 0,3 %). Se observaron unas pocas corridas lentas en el host; su causa no se investigó. El contenedor se usó para aplicar las cuotas de los ensayos siguientes (`docker update`); esta comparación no evaluó por separado los costos de red, disco o arranque.
 
 ## 8.3. Objetivo O2: límites de CPU mediante cgroups v2
 
@@ -99,7 +99,7 @@ En los Exp 3 y 4 Ollama se fijó a 12 CPUs lógicas (`6-11,18-23`) y los `stress
 
 **Variabilidad.** El CV de tokens/s pasa de 0,1 % (0,0 % en el corto) a 10,1 % y 10,3 % con un competidor; el del TTFT corto, de 2,7 % a 62,9 % (media 0,849 s, P95 1,699 s).
 
-**Interpretación.** Con un competidor los hilos esperan en cola solo 7,7 % del tiempo (0,92 CPUs de 12; demora media 2,49 ms, máxima 5,0 ms, del orden de un turno de EEVDF de 2,8 ms) y aun así el rendimiento cae 90 %. **Hipótesis:** en cada paso los 12 hilos esperan al más lento, y uno que comparte CPU con un competidor frena a los otros 11; la métrica de cola promedia por hilo y subestima ese costo.
+**Resultado e hipótesis.** Con un competidor, el rendimiento medio cayó cerca del 90 %. En una captura separada del scheduler, los hilos de Ollama pasaron en cola el 7,7 % de su tiempo ejecutable (ejecución más espera en cola), con una demora media de 2,49 ms y una máxima de 5,0 ms. Una hipótesis es que el retraso de un hilo podría prolongar la espera de los demás en una barrera de `llama.cpp`. La métrica de cola no mide esas esperas en las barreras; por eso no demuestra que la sincronización haya causado el colapso.
 
 ### 8.4.2. Prioridad con nice (Exp 4)
 
@@ -128,7 +128,9 @@ En las columnas TTFT y tokens/s, los valores se leen en este orden: media / P95 
 
 **Interpretación del nice.** Los pesos del kernel para nice 0, 10 y 19 son 1024, 110 y 15 (Kerrisk, s. f.-e; Linux Kernel Developers, 2026); frente a 12 competidores, la porción teórica de Ollama sería 50 %, 90 % y 98,6 %, y las capturas concuerdan (6,00, 10,78 y 11,82 de 12 CPUs). El rendimiento, en cambio, es mucho menor: 0,47 tokens/s con nice 0 (2 % de la base) pese a la mitad de la CPU, y 9,53 con nice 10 (cerca de 40 %) con el 90 %. Es coherente con la hipótesis de sincronización. Con nice 0 hay además 1994 cambios de contexto involuntarios por segundo, contra 19,9 y 229,5 sin competencia ni cuota: un scheduler justo no garantiza buen rendimiento a hilos fuertemente acoplados.
 
-**La cuota estricta.** Con nice 19 y cuota de 2 CPUs, Ollama rinde 2,83 tokens/s (largo), menos que con la misma cuota sin competidores (3,61, Tabla 8.2). Ollama corre 1,33 CPUs y los competidores, **pese a nice 19**, se llevan 0,67 de las 2 CPUs: el límite se aplica al cgroup completo y la prioridad solo reparte lo que queda dentro.
+**Cuota y CPUs disponibles.** La cuota limita el tiempo total de CPU del cgroup; el `cpuset` define en qué CPUs lógicas pueden ejecutarse sus procesos. Para el prompt largo, `exp2_cpus2` promedió 3,61 tokens/s (Tabla 8.2), con 24 CPUs lógicas disponibles (`0-23`) y sin competidores. `exp4_nice19_cpus2` promedió 2,83 tokens/s (Tabla 8.4), con 12 CPUs lógicas disponibles (`6-11,18-23`) y 12 competidores con `nice` 19. Ambas condiciones tuvieron la misma cuota (`cpu.max = 200000 100000`), según `experiments/results/night.log`, líneas 345 y 843–844. El contraste es descriptivo: no aísla el efecto de la competencia porque también cambia el conjunto de CPUs disponibles.
+
+En la captura separada del scheduler para `exp4_nice19_cpus2`, Ollama usó el equivalente a 1,33 CPUs y los competidores, a 0,67 (Tabla 8.5). La cuota se aplicó al cgroup completo; `nice` afectó el reparto dentro de ese presupuesto.
 
 **Episodios de bloqueo.** En esta condición, 3 de las 60 corridas tardaron muchísimo más que una normal (~45 s): 102 s (corto, rep 8; 1,27 tokens/s), 600 s (largo, rep 15; 0,19) y 1261 s (corto, rep 18; 0,10). Arrastran la media (2,83 y 2,89 tokens/s) por debajo de la mediana (2,93 y 3,05) y explican el CV elevado (17,7 % y 21,4 %); por eso la mediana es más representativa. **Hipótesis:** los hilos esperan «girando», gastando el presupuesto sin avanzar cuando la cuota frena al hilo del que dependen. **La causa no está demostrada**: la captura posterior del scheduler (ventana separada de 20 s, sin generaciones completadas) no registró los episodios originales.
 
@@ -155,7 +157,7 @@ Las métricas (`schedstat` por hilo, `perf sched`, `pidstat`, `cpu.stat`) se cap
 
 Fuente: `experiments/sched/summary.csv` y `experiments/sched_extra/summary.csv` (las filas «Exp 2, 2 CPUs» y «Exp 4, nice 0» provienen de `sched_extra`). La CPU de los competidores es el tiempo de CPU de `stress-ng` medido por `perf` dividido por la ventana. La última columna proviene de `summary.md`, no de la ventana. Las cifras son las de `summary.csv` redondeadas a la precisión mostrada.
 
-Las capturas aportan tres lecturas. **(1) Cuota:** Ollama corre exactamente con la cuota y espera el resto; la demora máxima (71,5 a 94,6 ms) llega casi a un período de 100 ms, con un throttle por período: el mecanismo de H1 visto desde el scheduler. **(2) Competencia sin cuota:** el throttling es 0 y el costo viene de la espera en cola y la sincronización de hilos. **(3) Prioridad:** la espera y la CPU de los competidores siguen los pesos de nice, pero con cuota estricta recuperan 0,67 CPUs pese a nice 19.
+Las capturas aportan tres lecturas. **(1) Cuota:** Ollama corre exactamente con la cuota y espera el resto; la demora máxima (71,5 a 94,6 ms) llega casi a un período de 100 ms, con un throttle por período: el mecanismo de H1 visto desde el scheduler. **(2) Competencia sin cuota:** no se registró throttling y sí aumentó la espera en cola. Estas capturas no permiten determinar cuánto explica esa espera ni demostrar que la sincronización entre hilos causó la caída de rendimiento. **(3) Prioridad:** la espera y la CPU de los competidores siguen los pesos de nice, pero con cuota estricta recuperan 0,67 CPUs pese a nice 19.
 
 Cautela: las ventanas son independientes de la corrida medida y en varias condiciones completaron pocas generaciones (6 en `exp2_nolimit` y `exp3_comp0`; 5 en nice 19; 3 en nice 10; 2 en 4 CPUs; 1 en 1 CPU, 2 CPUs, 1 competidor y nice 0; 0 en nice 19 + 2 CPUs). No se miden sobre las mismas corridas que el rendimiento.
 
@@ -167,7 +169,7 @@ Cautela: las ventanas son independientes de la corrida medida y en varias condic
 |---|---|---|
 | H1: «La reducción de la cuota de CPU incrementa la latencia y disminuye el rendimiento de inferencia cuando se produce throttling.» | Se confirma | tokens/s −35,6 %, −69,3 %, −86,4 % y −93,1 % (corto) con 8, 4, 2 y 1 CPUs; TTFT largo 0,952 a 15,125 s; throttling de 86 a 853 por corrida (largo) |
 | H2: «La competencia por CPU incrementa la latencia y su variabilidad respecto de una ejecución sin competencia.» | Se confirma, con un efecto mayor al esperado | tokens/s −89,7 %, −96,9 % y −97,8 %; CV de tokens/s de 0,1 % a 10,1 % (largo); CV del TTFT corto de 2,7 % a 62,9 % |
-| H3: «Ajustar la prioridad mediante nice puede reducir la interferencia de procesos competidores, pero no necesariamente compensar las limitaciones impuestas por una cuota estricta de CPU.» | Se confirma en sus dos partes | nice 0 → 19: 0,47 → 20,59 tokens/s (largo); nice 19 + 2 CPUs: 2,83 tokens/s, con 703 throttles por corrida |
+| H3: «Ajustar la prioridad mediante nice puede reducir la interferencia de procesos competidores, pero no necesariamente compensar las limitaciones impuestas por una cuota estricta de CPU.» | Respaldada en las condiciones ensayadas | Con 12 competidores y sin cuota, nice 0 → 19: 0,47 → 20,59 tokens/s (largo); con la misma competencia, agregar la cuota de 2 CPUs reduce el rendimiento de 20,59 a 2,83 tokens/s |
 
 Fuente: elaboración propia a partir de `experiments/analysis/summary.md` y `experiments/analysis/comparisons.csv`.
 
@@ -175,7 +177,7 @@ Fuente: elaboración propia a partir de `experiments/analysis/summary.md` y `exp
 
 **H2.** Se confirma, con un efecto mayor al sugerido: un colapso de 90 % con un solo competidor. La variabilidad aumenta respecto de la base pero no de forma monótona: con 2 y 3 competidores el CV de tokens/s (5,1 % a 7,5 % y 1,7 % a 3,7 %) es menor que con 1 (10,1 % y 10,3 %), y esas condiciones tienen N = 10.
 
-**H3.** Se confirma en sus dos partes: con nice 19 Ollama recupera 87 % del rendimiento sin competencia (20,59 frente a 23,74 tokens/s, largo), pero bajo cuota de 2 CPUs rinde 2,83, menos que con la cuota sin competidores (3,61). La segunda parte no depende de los episodios de bloqueo: se cumple tanto con la media (2,83 tokens/s) como con la mediana (2,93), ambas por debajo de 3,61.
+**H3.** Sin cuota, pasar de nice 0 a nice 19 con 12 competidores elevó el rendimiento de 0,47 a 20,59 tokens/s (prompt largo), el 87 % de la referencia sin competencia (23,74). Al agregar la cuota de 2 CPUs a `exp4_nice19`, manteniendo el mismo conjunto de CPUs y los mismos 12 competidores con nice 19, el rendimiento bajó a 2,83 tokens/s. Este par muestra que el ajuste de prioridad no evitó la caída al agregar la cuota. No mide cuánto aportó la competencia bajo cuota: para eso faltó una condición sin competidores con la misma cuota y el mismo `cpuset`.
 
 ## 8.7. Limitaciones
 
@@ -183,16 +185,16 @@ Fuente: elaboración propia a partir de `experiments/analysis/summary.md` y `exp
 - **N = 10 en tres condiciones.** `exp3_comp2`, `exp3_comp3` y `exp4_nice0`: su P95 y P5 son orientativos.
 - **I6: 113 tokens en lugar de 128.** En el prompt largo, 8 de cada 30 respuestas (2 de 10 con N = 10) terminan en 113 tokens, siempre en las mismas corridas. No afecta las comparaciones: tokens/s es por token y el TTFT no depende del largo de salida.
 - **I8: episodios de bloqueo.** Los tres episodios de `exp4_nice19_cpus2` son datos válidos y se mantienen; su causa no está demostrada.
-- **Capturas del scheduler en ventanas separadas** y con pocas generaciones: evidencia de mecanismo, no medición simultánea. No se varió el número de hilos ni se probó otro scheduler, por lo que atribuir el colapso a la sincronización por paso es una inferencia, no un resultado experimental.
+- **Capturas del scheduler en ventanas separadas.** Muestran espera en cola y throttling, pero no miden las esperas en las barreras de `llama.cpp` ni coinciden con las corridas de rendimiento. No se varió el número de hilos, por lo que la sincronización sigue siendo una hipótesis para el colapso observado.
 - **`cpu.stat` mezcla procesos en Exp 3 y 4.** «CPUs usadas» (12,00) no separa Ollama de `stress-ng`; para eso se usan las capturas de 8.5.
 
 ## 8.8. Qué habría cambiado con otro enfoque
 
 - **Competidores en un cgroup hermano con `cpu.weight`.** Poner los competidores en el cgroup de Ollama fue necesario para que compitieran, pero es un escenario menos habitual que el de contenedores vecinos; con cgroups hermanos se medirían políticas de aislamiento multi-inquilino y la interferencia probablemente sería distinta (conjetura no medida).
-- **Fijar el número de hilos de Ollama** (8 en 8 CPUs en lugar de 12 en 12) habría evitado la sobresuscripción de hilos del piloto (I3; Jeffery et al., 2024) y aislado el efecto de la sincronización.
+- **Fijar el número de hilos de Ollama** (8 en 8 CPUs en lugar de 12 en 12) habría evitado configurar más hilos de cómputo que CPUs lógicas disponibles, como en el piloto (I3; Jeffery et al., 2024). Ese cambio por sí solo no habría aislado el efecto de la sincronización.
 - **N = 30 en todas las condiciones** habría dado P95 interpretables en las tres excepciones.
 
 ## 8.9. Mejoras para trabajo futuro
 
 1. **Medir los episodios de bloqueo con instrumentación continua.** Repetir `exp4_nice19_cpus2` con N mayor y registrar `schedstat` por hilo y `cpu.stat` cada segundo, sin `perf`, para capturar un episodio cuando ocurre y comprobar o descartar la espera activa. Se justifica porque la causa de I8 es la principal incógnita y el registro liviano evita el sesgo de `perf`.
-2. **Variar el número de hilos de Ollama** (4, 8 y 12) frente a la cuota y los competidores. Si el colapso se debe a la sincronización por paso, debería disminuir con menos hilos: es una prueba directa de la hipótesis de las secciones 8.3 y 8.4. Después podrían compararse `cpu.weight` entre cgroups hermanos y, como extensión opcional, SCHED_FIFO y SCHED_RR (Kerrisk, s. f.-e; The Linux Kernel documentation, s. f.-b, s. f.-d).
+2. **Variar el número de hilos de Ollama** (4, 8 y 12) frente a la cuota y los competidores. Registrar además el tiempo de espera en las barreras durante las mismas corridas. Variar los hilos permite evaluar cómo cambia el colapso; medir las barreras permite contrastar específicamente la hipótesis de las secciones 8.3 y 8.4. Después podrían compararse `cpu.weight` entre cgroups hermanos y, como extensión opcional, SCHED_FIFO y SCHED_RR (Kerrisk, s. f.-e; The Linux Kernel documentation, s. f.-b, s. f.-d).

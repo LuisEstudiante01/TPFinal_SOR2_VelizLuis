@@ -103,7 +103,7 @@ Fuente: elaboración propia.
 llama threadpool init, n_threads = 12
 ```
 
-Los 12 hilos de llama.cpp se sincronizan en cada paso; con 8 CPUs siempre hay uno sin CPU y los demás esperan (sobresuscripción). Se fijaron los Exp 3 y 4 a 12 CPUs lógicas.
+Con 12 hilos de cómputo y 8 CPUs lógicas no podían ejecutarse todos a la vez. La demora de un hilo podría propagarse a otros en un punto de sincronización, pero el piloto no midió ese mecanismo. Para evitar esa sobresuscripción en la configuración, se fijaron los Exp 3 y 4 a 12 CPUs lógicas.
 
 **Competencia catastrófica (I4).** En el tercer intento del piloto, `exp3_comp6` (6 competidores en 12 CPUs, condición que no quedó en la matriz final) cayó a 0,48 tokens/s contra unos 26 sin competencia. `experiments/diag_competition.py` midió el efecto (16 tokens por condición):
 
@@ -115,7 +115,7 @@ competidores  tokens/s   frente a sin competencia
 3             0.57       2 %
 ```
 
-Es el mismo mecanismo: un competidor de igual prioridad retrasa un hilo y la barrera frena a los otros once. Con N = 30, cada condición tardaría de 3 a 6 horas; por eso el diseño se ajustó (decisión de diseño del autor del 2026-11-19): Exp 3 con 0, 1, 2 y 3 competidores, y N = 10 en `exp3_comp2`, `exp3_comp3` y `exp4_nice0`; el resto mantiene N = 30.
+Una hipótesis es que el retraso de un hilo por la competencia podría demorar a los demás en una barrera de sincronización. El piloto midió la caída de rendimiento, no esa espera. Con N = 30, cada condición tardaría de 3 a 6 horas; por eso el diseño se ajustó (decisión de diseño del autor del 2026-11-19): Exp 3 con 0, 1, 2 y 3 competidores, y N = 10 en `exp3_comp2`, `exp3_comp3` y `exp4_nice0`; el resto mantiene N = 30.
 
 **Caché de prompt (I6).** Con el prompt repetido, el TTFT del largo caía casi a cero por la caché KV; por eso cada pedido lleva un identificador único (`[request NNNN]`), igual en todas las condiciones. Efecto colateral: en 8 de cada 30 corridas del prompt largo el modelo cierra en 113 tokens en lugar de 128, siempre en las mismas repeticiones; no afecta las comparaciones porque tokens/s es por token.
 

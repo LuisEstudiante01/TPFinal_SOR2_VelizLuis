@@ -29,13 +29,13 @@ Prompt largo, `llama3.2:3b`, solo CPU. El detalle y la estadística están en el
 
 | Objetivo | Resultado |
 |---|---|
-| **O1:** host frente a Docker | Diferencia menor al 1 % (26,84 frente a 26,81 tokens/s). Un contenedor no virtualiza la CPU. |
+| **O1:** host frente a Docker | Sin cuotas adicionales ni competidores, las medias de TTFT y tokens/s difirieron menos del 1 % en este ensayo (26,84 frente a 26,81 tokens/s para el prompt largo). No se demuestra equivalencia. |
 | **O2:** cuotas con `cpu.max` | Media cuota, media velocidad: de 26,78 tokens/s sin límite a 1,77 tokens/s con 1 CPU (−93 %). |
 | **O3:** competidores | Un solo competidor de igual prioridad baja el rendimiento de 23,74 a 2,45 tokens/s (−90 %). |
-| **O3:** `nice` | Con los competidores en `nice` 19, Ollama vuelve a 20,59 tokens/s; con una cuota de 2 CPUs se queda en 2,83 tokens/s: la cuota manda. |
-| **O4:** métricas del scheduler | Con cuota hay 10 throttles por segundo; con un competidor los hilos esperan en cola solo el 7,7 % del tiempo y aun así el rendimiento cae 90 %. |
+| **O3:** `nice` | Con 12 competidores a `nice` 19, agregar una cuota equivalente a 2 CPUs sin cambiar las CPUs disponibles ni los rivales reduce la media de 20,59 a 2,83 tokens/s. |
+| **O4:** métricas del scheduler | En la captura de 20 s con un competidor sin cuota, el rival usó 0,91 CPUs en promedio y Ollama pasó en cola el 7,7 % de su tiempo ejecutable (ejecución más espera). La caída cercana al 90 % se midió en corridas aparte. |
 
-Se confirman H1, H2 y H3. La explicación de la caída con un competidor (los 12 hilos se esperan entre sí en cada paso) es una hipótesis, no una causa demostrada.
+El contraste entre `exp2_cpus2` (3,61 tokens/s) y `exp4_nice19_cpus2` (2,83) no aísla el efecto de los competidores: con la misma cuota también cambia el conjunto de CPUs lógicas (`0–23` frente a `6–11,18–23`). La sincronización entre hilos de `llama.cpp` es una hipótesis para el colapso, no una causa demostrada.
 
 ## Entorno de medición
 
@@ -54,30 +54,99 @@ Se confirman H1, H2 y H3. La explicación de la caída con un competidor (los 12
 
 ## Cómo reproducir
 
-**Mediciones** (en un Linux con Docker, Ollama y `stress-ng`):
+### 1. Regenerar los resultados publicados (sin Ollama ni Docker)
+
+Desde una copia nueva del repositorio, con Python **3.15** disponible como `python3`:
 
 ```bash
-python3 experiments/run_matrix.py --n 1        # piloto: una repetición por condición
-python3 experiments/run_matrix.py              # corrida completa (Exp 1 a 4)
-python3 experiments/run_matrix.py --only exp2  # solo un experimento
-python3 experiments/analyze.py --results experiments/results --out experiments/analysis  # tablas y estadística
-python3 experiments/plot_figures.py            # figuras del informe
+git clone https://github.com/LuisEstudiante01/TPFinal_SOR2_VelizLuis.git
+cd TPFinal_SOR2_VelizLuis
+python3 -m venv .venv
+.venv/bin/python -m pip install -r experiments/requirements.txt
+.venv/bin/python experiments/analyze.py --results experiments/results --out experiments/analysis
+.venv/bin/python experiments/analyze_rt.py --results experiments/results_rt --base experiments/results --out experiments/analysis_rt
+.venv/bin/python experiments/plot_figures.py
 ```
 
-**Informe** (requiere Pandoc; el PDF final se exporta con Microsoft Word desde WSL):
+Se regeneran las tablas y comparaciones de los experimentos 1–4 en [`experiments/analysis/`](experiments/analysis/), el análisis descriptivo del experimento exploratorio 5 en [`experiments/analysis_rt/`](experiments/analysis_rt/) y las seis figuras de resultados en PNG y PDF en [`docs/informe/figuras/resultados/`](docs/informe/figuras/resultados/). Los comandos sobrescriben esas **salidas derivadas** en la copia, no los datos originales. Diferencias de fuentes o metadatos de exportación pueden cambiar los archivos de imagen o PDF sin cambiar los números.
+
+| Evidencia original | Contenido |
+|---|---|
+| [`experiments/results/`](experiments/results/) | 15 CSV de medición, 15 archivos `.meta.json`, [`night.log`](experiments/results/night.log) y [`watch_competitors.csv`](experiments/results/watch_competitors.csv). El log registra la cuota y el conjunto de CPUs de cada condición de la campaña principal. |
+| [`experiments/sched/`](experiments/sched/) y [`experiments/sched_extra/`](experiments/sched_extra/) | Capturas independientes de 20 s: resúmenes, `schedstat`, `pidstat` y salidas de `perf sched latency`. |
+| [`experiments/env/environment.txt`](experiments/env/environment.txt) y [`experiments/results_rt/`](experiments/results_rt/) | Entorno original y datos de la extensión exploratoria de tiempo real. |
+
+### 2. Repetir las mediciones en Linux nativo (opcional)
+
+Esto genera **datos nuevos**, no resultados idénticos. El banco original usó cgroups v2, Docker con el controlador de cgroups `systemd`, Ollama 0.40.16, `stress-ng` 0.20.01 y governor `performance`. Usá un equipo dedicado: los scripts cambian la cuota y la afinidad del contenedor y lanzan procesos de carga. La cuenta del laboratorio necesita los permisos no interactivos de `sudo -n` que usan los scripts; no habilites permisos amplios en un equipo compartido. Para las capturas adicionales hacen falta `perf` y `pidstat` (`sysstat`).
+
+1. Prepará Ollama como servicio de systemd `ollama.service` en el host (`127.0.0.1:11434`, cgroup `/sys/fs/cgroup/system.slice/ollama.service`) y un contenedor llamado `ollama-docker` (`127.0.0.1:11435` → `11434`). El protocolo mide solo CPU. Para el contenedor, usá una imagen que corresponda a Ollama 0.40.16, no la etiqueta móvil `latest` como garantía de versión; el ensayo original no registró un digest de la imagen de Docker. Un comando de preparación, con la referencia de imagen verificada en `OLLAMA_IMAGE`, es:
+
+   ```bash
+   sudo -n docker run -d --name ollama-docker \
+     -p 127.0.0.1:11435:11434 -v ollama-docker-models:/root/.ollama "$OLLAMA_IMAGE"
+   ```
+
+2. Descargá el modelo en ambos entornos: `ollama pull llama3.2:3b` y `sudo -n docker exec ollama-docker ollama pull llama3.2:3b`. Comprobá con `/api/tags` en ambos puertos que el digest del modelo coincide con `model_digest` en los `.meta.json` originales. Si no coincide, la repetición no usa exactamente el mismo artefacto.
+3. Revisá `lscpu -e=CPU,CORE,ONLINE` y `stat -fc %T /sys/fs/cgroup` (debe dar `cgroup2fs`). La matriz usa `0-23` y `6-11,18-23` tal como aparecen en el equipo original. Si tu topología es distinta, adaptá las máscaras con criterio y documentá la diferencia. Los prompts, parámetros y repeticiones por condición están fijados en [`run_protocol.py`](experiments/run_protocol.py) y [`run_matrix.py`](experiments/run_matrix.py).
+
+Desde la raíz, después de completar ese entorno:
 
 ```bash
-bash docs/informe/build.sh          # DOCX y vista previa con LibreOffice
-bash docs/informe/build.sh --word   # DOCX y PDF final con Word
+python3 experiments/run_matrix.py --list  # imprime la matriz sin ejecutar nada
+run_dir=$(mktemp -d "$PWD/repeticion.XXXXXX")
+set -o pipefail
+# Piloto rápido y campaña completa en directorios distintos:
+python3 experiments/run_matrix.py --only exp1 --n 1 --out "$run_dir/piloto" 2>&1 | tee "$run_dir/piloto.log"
+python3 experiments/run_matrix.py --out "$run_dir/results" 2>&1 | tee "$run_dir/night.log"
+.venv/bin/python experiments/analyze.py --results "$run_dir/results" --out "$run_dir/analysis"
 ```
 
-**Presentación** (requiere Node.js):
+La campaña principal original tardó unas 10 h 15 min. No mezcles distintas corridas en el mismo directorio de entrada del análisis. `--only exp2` permite acotar la matriz; `--only exp5` habilita por separado la prueba exploratoria de tiempo real, fuera de la campaña principal y con permisos y requisitos adicionales. Los metadatos de las corridas nuevas pueden tener campos que el esquema original no tenía; para la configuración original consultá `night.log`.
+
+Las capturas del scheduler se hacen por separado para no incluir la sobrecarga de `perf` en las mediciones de rendimiento:
+
+```bash
+python3 experiments/sched_capture.py --window 20 --out "$run_dir/sched" --raw "$run_dir/sched_raw"
+python3 experiments/sched_capture.py --window 20 --only exp2_cpus2,exp4_nice0 \
+  --out "$run_dir/sched_extra" --raw "$run_dir/sched_extra_raw"
+```
+
+`watch_competitors.sh` es un monitor opcional para una campaña en `tmux`: recibe como argumentos la ruta al log y el nombre de la sesión, y requiere un único cgroup Docker activo. Los archivos binarios `perf.data` de nuevas capturas quedan en el directorio `--raw`; no forman parte de la evidencia publicada.
+
+### 3. Generar los entregables
+
+**Informe** (Pandoc y Python; LibreOffice es opcional y solo crea una vista previa):
+
+```bash
+bash docs/informe/build.sh          # DOCX en docs/informe/build/
+bash docs/informe/build.sh --word   # exportación oficial desde WSL con Microsoft Word
+```
+
+Para regenerar los diagramas además de las figuras experimentales: `.venv/bin/python docs/informe/figuras/diagramas.py`.
+
+**Presentación** (Node.js 26 y npm 11, usando el lockfile):
 
 ```bash
 cd docs/presentacion
-npm install
-node build_deck.js
+npm ci
+node build_deck.js  # PPTX editable, en esta carpeta
 ```
+
+Desde esa misma carpeta, en WSL con Microsoft PowerPoint y Word instalados, exportá la presentación y el guion:
+
+```bash
+name=TPFinal_SOR2_2026_2s_VelizLuis_presentacion
+powershell.exe -NoProfile -File "$(wslpath -w "$PWD/ppt_export.ps1")" \
+  -Pptx "$(wslpath -w "$PWD/$name.pptx")" -Pdf "$(wslpath -w "$PWD/$name.pdf")"
+mkdir -p build
+pandoc guion-oral.md --metadata lang=es-AR --reference-doc ../informe/build/reference.docx \
+  -o build/guion-oral.docx
+powershell.exe -NoProfile -File "$(wslpath -w "$PWD/../informe/word_export.ps1")" \
+  -Docx "$(wslpath -w "$PWD/build/guion-oral.docx")" -Pdf "$(wslpath -w "$PWD/guion-oral.pdf")"
+```
+
+El archivo `reference.docx` del comando de Pandoc se genera en el paso **Informe**. Si Windows bloquea los scripts, abrí los editables en Office y exportá desde allí, sin cambiar la política de PowerShell. No uses un PDF de vista previa de LibreOffice como PDF oficial del informe.
 
 ## Uso de IA
 

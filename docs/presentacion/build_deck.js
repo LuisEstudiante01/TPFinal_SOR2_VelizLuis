@@ -312,36 +312,36 @@ const chartBase = (extra) => Object.assign({
 // 7 — O1
 {
   const s = pres.addSlide({ masterName: "MAIN" });
-  title(s, "O1: Docker rinde igual que el host");
+  title(s, "O1: host y Docker, medias cercanas");
   card(s, 0.5, 1.4, 4.1, 3.5, STRONG);
   await badge(s, si.SiLinux, 1.0, 1.7, 1.0, TEAL, "Host");
-  txt(s, "=", { x: 2.0, y: 1.7, w: 1.1, h: 1.0, fontFace: HF, fontSize: 40, bold: true, color: WHITE, align: "center", valign: "middle" });
+  txt(s, "≈", { x: 2.0, y: 1.7, w: 1.1, h: 1.0, fontFace: HF, fontSize: 40, bold: true, color: WHITE, align: "center", valign: "middle" });
   await badge(s, si.SiDocker, 3.1, 1.7, 1.0, AMBER, "Docker");
   txt(s, "Host", { x: 0.75, y: 2.75, w: 1.5, h: 0.3, fontSize: 14, color: PALE, align: "center" });
   txt(s, "Docker", { x: 2.85, y: 2.75, w: 1.5, h: 0.3, fontSize: 14, color: PALE, align: "center" });
   txt(s, "< 1 %", { x: 0.5, y: 3.1, w: 4.1, h: 1.1, fontFace: HF, fontSize: 64, bold: true, color: AMBER, align: "center", valign: "middle" });
-  txt(s, "de diferencia", { x: 0.5, y: 4.2, w: 4.1, h: 0.4, fontSize: 16, color: WHITE, align: "center" });
+  txt(s, "entre medias (N = 30 c/u)", { x: 0.5, y: 4.2, w: 4.1, h: 0.4, fontSize: 16, color: WHITE, align: "center" });
   s.addChart(pres.charts.BAR, [{ name: "tokens/s", labels: ["Host", "Docker"], values: [26.84, 26.81] }],
     chartBase({ x: 4.9, y: 1.4, w: 4.6, h: 3.5, barDir: "col", chartColors: [TEAL, AMBER], valAxisMinVal: 0, valAxisMaxVal: 35, valAxisMajorUnit: 5,
-      title: "Tokens/s (prompt largo, sin límites)", dataLabelFormatCode: "#,##0.00" }));
-  s.addNotes("Primer objetivo: ¿cuesta CPU correr Ollama dentro de Docker? Sin límites, no. En el prompt largo, el host rindió 26,84 tokens/s y Docker 26,81; el TTFT fue 0,950 s contra 0,957 s. La diferencia es menor al 1 % (−0,1 % a +0,7 %). Es lo esperado: un contenedor no es una máquina virtual, son procesos del mismo kernel aislados con namespaces y limitados con cgroups. El costo de Docker aparece en otras capas (red, disco, arranque), que esta medición no ejercita. Esto justifica usar el contenedor, porque ahí se pueden imponer cuotas con docker update.");
+      title: "Media de tokens/s · prompt largo, sin cuota", dataLabelFormatCode: "#,##0.00" }));
+  s.addNotes("Primer objetivo: comparar host y Docker sin límites adicionales de CPU. En este ensayo las medias fueron cercanas. En el prompt largo, el host rindió 26,84 tokens/s y Docker 26,81; el TTFT fue 0,950 s contra 0,957 s. Son medias de N = 30 corridas por condición; la diferencia es menor al 1 % (−0,1 % a +0,7 %). En este montaje las medias medidas son muy cercanas, lo que no equivale a decir que el costo sea cero. Es lo esperado: un contenedor no es una máquina virtual, son procesos del mismo kernel aislados con namespaces y limitados con cgroups. Un costo de Docker en otras capas (red, disco, arranque) no se mide aquí. Esto justifica usar el contenedor, porque ahí se pueden imponer cuotas con docker update.");
 }
 
 // 8 — O2 quota
 {
   const s = pres.addSlide({ masterName: "MAIN" });
-  title(s, "O2: la cuota se paga en velocidad");
-  s.addChart(pres.charts.BAR, [{ name: "tokens/s", labels: ["Sin límite", "8 CPUs", "4 CPUs", "2 CPUs", "1 CPU"], values: [26.78, 17.28, 8.26, 3.61, 1.77] }],
+  title(s, "O2: la cuota se paga en velocidad", "Cuota = tiempo de CPU equivalente (cpu.max), no cantidad de CPUs permitidas.");
+  s.addChart(pres.charts.BAR, [{ name: "tokens/s", labels: ["Sin cuota", "8 CPUs eq.", "4 CPUs eq.", "2 CPUs eq.", "1 CPU eq."], values: [26.78, 17.28, 8.26, 3.61, 1.77] }],
     chartBase({ x: 0.5, y: 1.4, w: 6.0, h: 3.6, barDir: "col", chartColors: [GREY, TEAL, TEAL, TEAL, TEAL], valAxisMinVal: 0, valAxisMaxVal: 30, valAxisMajorUnit: 10,
-      title: "Tokens/s según la cuota (prompt largo)" }));
+      title: "Media de tokens/s según cuota (prompt largo, N = 30)" }));
   card(s, 6.8, 1.4, 2.7, 1.6, STRONG);
   txt(s, "÷ 2", { x: 6.8, y: 1.5, w: 2.7, h: 0.9, fontFace: HF, fontSize: 54, bold: true, color: AMBER, align: "center", valign: "middle" });
-  txt(s, "media cuota, media velocidad", { x: 6.9, y: 2.4, w: 2.5, h: 0.5, fontSize: 13, color: WHITE, align: "center", valign: "top" });
+  txt(s, "media cuota ≈ mitad de velocidad (aprox.)", { x: 6.9, y: 2.4, w: 2.5, h: 0.5, fontSize: 13, color: WHITE, align: "center", valign: "top" });
   card(s, 6.8, 3.2, 2.7, 1.8);
   txt(s, "−93 %", { x: 6.8, y: 3.3, w: 2.7, h: 0.8, fontFace: HF, fontSize: 40, bold: true, color: RED, align: "center", valign: "middle" });
-  txt(s, "con 1 CPU", { x: 6.9, y: 4.1, w: 2.5, h: 0.35, fontSize: 14, color: TEXT, align: "center" });
-  txt(s, "TTFT × 16", { x: 6.9, y: 4.45, w: 2.5, h: 0.35, fontSize: 14, bold: true, color: AMBER, align: "center" });
-  s.addNotes("Segundo objetivo: cuotas de CPU con cgroups v2. Prompt largo: sin límite 26,78 tokens/s; con 8 CPUs 17,28; con 4, 8,26; con 2, 3,61; y con 1 CPU, 1,77. Cada vez que la cuota se reduce a la mitad, la velocidad cae más o menos a la mitad y el TTFT largo aproximadamente se duplica (de 0,952 s a 15,125 s con 1 CPU). La cuota se cumple de forma exacta (el cgroup consumió 8,00, 4,00, 2,00 y 1,00 CPUs). La caída es incluso algo peor que proporcional: por CPU usada se pasa de 2,23 a 1,77 tokens/s. Hipótesis, no aislada experimentalmente: los 12 hilos se sincronizan en cada paso, así que cuando el throttling frena a uno, los demás esperan y desperdician su parte de la cuota. Se confirma la hipótesis H1. Nota: los decimales del gráfico se muestran con la configuración regional de quien abra el archivo.");
+  txt(s, "1 CPU eq. vs. sin cuota", { x: 6.9, y: 4.1, w: 2.5, h: 0.35, fontSize: 14, color: TEXT, align: "center" });
+  txt(s, "TTFT medio × 16", { x: 6.9, y: 4.45, w: 2.5, h: 0.35, fontSize: 14, bold: true, color: AMBER, align: "center" });
+  s.addNotes("Segundo objetivo: cuotas de CPU con cgroups v2. Prompt largo: sin límite 26,78 tokens/s; con 8 CPUs 17,28; con 4, 8,26; con 2, 3,61; y con 1 CPU, 1,77. La cuota es tiempo de CPU equivalente por período, no un número de CPUs permitidas (los hilos pueden usar cualquiera de las 24 lógicas). Son medias de N = 30 por condición. Cada vez que la cuota se reduce a la mitad, la velocidad cae aproximadamente a la mitad (comparación aproximada, no una ley exacta) y el TTFT largo aproximadamente se duplica (de 0,952 s a 15,125 s con 1 CPU). La cuota se cumple de forma exacta (el cgroup consumió 8,00, 4,00, 2,00 y 1,00 CPUs). La caída es incluso algo peor que proporcional: por CPU usada se pasa de 2,23 a 1,77 tokens/s. Una hipótesis, no probada ni aislada experimentalmente: los 12 hilos se sincronizan en cada paso, así que cuando el throttling frena a uno, los demás esperan y desperdician su parte de la cuota. Se confirma la hipótesis H1. Nota: los decimales del gráfico se muestran con la configuración regional de quien abra el archivo.");
 }
 
 // 9 — O3 competition
@@ -349,13 +349,15 @@ const chartBase = (extra) => Object.assign({
   const s = pres.addSlide({ masterName: "MAIN" });
   title(s, "O3: un solo rival hunde el rendimiento");
   s.addChart(pres.charts.BAR, [{ name: "tokens/s", labels: ["0", "1", "2 (N = 10)", "3 (N = 10)"], values: [23.74, 2.45, 0.74, 0.53] }],
-    chartBase({ x: 0.5, y: 1.4, w: 4.5, h: 3.6, barDir: "col", chartColors: [GREY, RED, RED, RED], valAxisMinVal: 0, valAxisMaxVal: 28, valAxisMajorUnit: 7,
-      title: "Tokens/s según nº de rivales (prompt largo)" }));
+    chartBase({ x: 0.5, y: 1.4, w: 4.5, h: 3.25, barDir: "col", chartColors: [GREY, RED, RED, RED], valAxisMinVal: 0, valAxisMaxVal: 28, valAxisMajorUnit: 7,
+      title: "Media de tokens/s por nº de rivales" }));
+  txt(s, "Prompt largo · N = 30 por condición, salvo 2 y 3 rivales: N = 10.", { x: 0.5, y: 4.7, w: 4.5, h: 0.4, fontSize: 11, color: MUTED, valign: "top" });
   await badge(s, lu.LuUsers, 5.3, 1.45, 0.85, RED, "Un rival");
-  txt(s, "−90 %", { x: 6.3, y: 1.35, w: 3.2, h: 1.05, fontFace: HF, fontSize: 60, bold: true, color: RED, valign: "middle" });
+  txt(s, "−90 %", { x: 6.3, y: 1.3, w: 3.2, h: 0.95, fontFace: HF, fontSize: 60, bold: true, color: RED, valign: "middle" });
+  txt(s, "media con 1 rival vs. sin rivales", { x: 5.3, y: 2.3, w: 4.2, h: 0.3, fontSize: 12, color: PALE });
   card(s, 5.3, 2.7, 4.2, 2.3);
-  txt(s, "Cada paso espera al hilo más lento", { x: 5.5, y: 2.8, w: 3.85, h: 0.3, fontSize: 14, bold: true, color: WHITE });
-  txt(s, "hipótesis", { x: 5.5, y: 3.1, w: 3.85, h: 0.25, fontSize: 11, color: MUTED });
+  txt(s, "Hipótesis sin probar", { x: 5.5, y: 2.8, w: 3.85, h: 0.3, fontSize: 14, bold: true, color: WHITE });
+  txt(s, "¿cada paso esperaría al hilo más lento?", { x: 5.5, y: 3.1, w: 3.85, h: 0.25, fontSize: 11, color: MUTED });
   for (let i = 0; i < 4; i++) {
     const y = 3.5 + i * 0.32, slow = i === 3;
     s.addShape(pres.shapes.RECTANGLE, { x: 5.5, y, w: slow ? 2.4 : 1.2, h: 0.22, fill: { color: slow ? RED : TEAL }, line: { color: slow ? RED : TEAL }, objectName: "Hilo " + (i + 1) });
@@ -364,43 +366,45 @@ const chartBase = (extra) => Object.assign({
   txt(s, "espera", { x: 6.7, y: 3.5, w: 1.2, h: 0.22, fontSize: 10, color: MUTED, align: "center", valign: "middle" });
   s.addShape(pres.shapes.LINE, { x: 7.95, y: 3.45, w: 0, h: 1.3, line: { color: PALE, width: 1.5, dashType: "dash" } });
   txt(s, "siguiente paso", { x: 8.05, y: 3.95, w: 1.4, h: 0.5, fontSize: 11, color: MUTED });
-  s.addNotes("Tercer objetivo: competencia. Se lanzan procesos stress-ng en las mismas CPUs de Ollama, con igual prioridad. Prompt largo: sin competidores 23,74 tokens/s; con 1, 2,45; con 2, 0,74; con 3, 0,53. O sea −89,7 %, −96,9 % y −97,8 %. Lo llamativo es que con un solo competidor los hilos de Ollama esperan en cola solo el 7,7 % del tiempo y aun así el rendimiento cae 90 %. Hipótesis: en cada paso de la generación los 12 hilos tienen que sincronizarse y esperan al más lento; basta que un hilo comparta CPU con el competidor para frenar a los otros 11. Es una inferencia coherente con los datos, no un resultado experimental: no se varió el número de hilos (queda como trabajo futuro). Se confirma H2, con un efecto mayor al esperado. Las condiciones con 2 y 3 competidores tienen N = 10.");
+  s.addNotes("Tercer objetivo: competencia. Se lanzan procesos stress-ng en las mismas CPUs de Ollama, con igual prioridad. Prompt largo: sin competidores 23,74 tokens/s; con 1, 2,45; con 2, 0,74; con 3, 0,53. O sea −89,7 %, −96,9 % y −97,8 %. Son medias; N = 30 por condición, salvo 2 y 3 competidores con N = 10. Lo llamativo es que con un solo competidor los hilos de Ollama pasan en cola solo el 7,65 % de su tiempo ejecutable, en una captura de 20 s aparte, y aun así el rendimiento medio cae 90 %. Una hipótesis, sin probar: en cada paso de la generación los 12 hilos podrían tener que sincronizarse y esperar al más lento. Es coherente con los datos, pero no es un resultado experimental ni una explicación establecida: no se varió el número de hilos (queda como trabajo futuro). Los resultados respaldan H2, con un efecto mayor al esperado.");
 }
 
 // 10 — nice
 {
   const s = pres.addSlide({ masterName: "MAIN" });
-  title(s, "O3: nice ayuda, pero la cuota manda");
-  s.addChart(pres.charts.BAR, [{ name: "tokens/s", labels: ["nice 0 (N = 10)", "nice 10", "nice 19", "nice 19 + 2 CPUs", "Sin rivales"], values: [0.47, 9.53, 20.59, 2.83, 23.74] }],
-    chartBase({ x: 0.5, y: 1.4, w: 6.2, h: 3.6, barDir: "col", chartColors: [RED, AMBER, GREEN, TEAL, GREY], valAxisMinVal: 0, valAxisMaxVal: 28, valAxisMajorUnit: 7,
-      title: "Tokens/s con 12 rivales según su nice (prompt largo)", catAxisLabelFontSize: 11 }));
+  title(s, "O3: nice ayuda, pero la cuota manda", "Dos comparaciones: prioridad sin cuota, y cuota con los mismos rivales.");
+  s.addChart(pres.charts.BAR, [{ name: "tokens/s", labels: ["nice 0 (N = 10)", "nice 10", "nice 19", "Ref.: sin rivales"], values: [0.47, 9.53, 20.59, 23.74] }],
+    chartBase({ x: 0.5, y: 1.4, w: 6.2, h: 3.25, barDir: "col", chartColors: [RED, AMBER, GREEN, GREY], valAxisMinVal: 0, valAxisMaxVal: 28, valAxisMajorUnit: 7,
+      title: "Sin cuota: media de tokens/s con 12 rivales" }));
+  txt(s, "Prompt largo · N = 30 por condición, salvo nice 0 (N = 10). Referencia: sin rivales, aparte.", { x: 0.5, y: 4.7, w: 6.2, h: 0.4, fontSize: 11, color: MUTED, valign: "top" });
   card(s, 7.0, 1.4, 2.5, 1.65);
   await badge(s, lu.LuScale, 7.95, 1.5, 0.6, GREEN, "nice");
   txt(s, "0,47 → 20,59", { x: 7.0, y: 2.15, w: 2.5, h: 0.5, fontFace: HF, fontSize: 24, bold: true, color: GREEN, align: "center", valign: "middle" });
-  txt(s, "tokens/s", { x: 7.0, y: 2.65, w: 2.5, h: 0.3, fontSize: 13, color: PALE, align: "center" });
-  card(s, 7.0, 3.25, 2.5, 1.75, STRONG);
-  await badge(s, lu.LuBatteryFull, 7.95, 3.35, 0.6, AMBER, "Cuota");
-  txt(s, "2,83", { x: 7.0, y: 4.0, w: 2.5, h: 0.55, fontFace: HF, fontSize: 32, bold: true, color: AMBER, align: "center", valign: "middle" });
-  txt(s, "nice 19 + 2 CPUs", { x: 7.0, y: 4.55, w: 2.5, h: 0.3, fontSize: 13, color: WHITE, align: "center" });
-  s.addNotes("Cuarto experimento: hay 12 competidores y se varía su nice (Ollama queda en nice 0). Prompt largo: con nice 0 Ollama rinde 0,47 tokens/s, con nice 10 9,53 y con nice 19 20,59, contra 23,74 sin competencia (recupera el 87 %). Los pesos del kernel (1024, 110, 15) explican el reparto de CPU, pero el rendimiento es mucho menor que la porción teórica: con nice 0 tiene la mitad de la CPU y rinde apenas el 2 %. Eso es coherente con la hipótesis de sincronización: un scheduler justo no garantiza buen rendimiento a hilos fuertemente acoplados. Cuando se agrega una cuota estricta de 2 CPUs a nice 19, Ollama rinde 2,83 tokens/s, menos que con la misma cuota sin competidores (3,61): el límite se aplica al cgroup completo y la prioridad solo reparte lo que queda adentro. Se confirma H3 en sus dos partes. Ojo con lo que muestra el gráfico: son medias. En la condición de nice 19 con 2 CPUs la media es 2,83 tokens/s y la mediana 2,93, ambas menores que los 3,61 de la misma cuota sin competidores, así que H3 se sostiene aunque hubo tres episodios de bloqueo muy largos en esa condición, cuya causa no está demostrada. Aclaración: la condición nice 0 tiene N = 10 corridas, no 30.");
+  txt(s, "tokens/s, sin cuota", { x: 7.0, y: 2.65, w: 2.5, h: 0.3, fontSize: 13, color: PALE, align: "center" });
+  card(s, 7.0, 3.25, 2.5, 1.8, STRONG);
+  await badge(s, lu.LuBatteryFull, 7.95, 3.32, 0.55, AMBER, "Cuota");
+  txt(s, "20,59 → 2,83", { x: 7.0, y: 3.92, w: 2.5, h: 0.5, fontFace: HF, fontSize: 24, bold: true, color: AMBER, align: "center", valign: "middle" });
+  txt(s, "+ cuota 2 CPUs, mismo cpuset y mismos rivales nice 19", { x: 7.1, y: 4.42, w: 2.3, h: 0.55, fontSize: 12, color: WHITE, align: "center", valign: "top" });
+  s.addNotes("Cuarto experimento: hay 12 competidores y se varía su nice (Ollama queda en nice 0). Las barras son medias del prompt largo, sin cuota: con nice 0 Ollama rinde 0,47 tokens/s (N = 10), con nice 10 9,53 y con nice 19 20,59, contra 23,74 sin competencia, que es una referencia aparte (recupera el 87 %). Los pesos del kernel (1024, 110, 15) explican el reparto teórico de CPU, pero el rendimiento es mucho menor que esa porción: con nice 0 tiene la mitad de la CPU y rinde apenas el 2 %. Una hipótesis posible, sin probar, es la sincronización entre hilos. Aparte está la comparación controlada de la cuota: agregar 2 CPUs de cuota a exp4_nice19, con el mismo conjunto de CPUs y los mismos 12 rivales en nice 19, baja la media de 20,59 a 2,83 tokens/s. No es una barra del gráfico porque cambia otra variable. Precaución sobre los 3,61: en exp2_cpus2, con la misma cuota, se midieron 3,61 tokens/s, pero había 24 CPUs lógicas disponibles (0-23) y ningún rival. En exp4_nice19_cpus2 había 12 CPUs lógicas (6-11,18-23) y 12 competidores en nice 19. Ese contraste 3,61 contra 2,83 no aísla el efecto de los rivales bajo cuota. En la condición con rivales y cuota la mediana es 2,93 y hubo tres episodios muy largos cuya causa no está demostrada. Aclaración: la condición nice 0 tiene N = 10 corridas, no 30.");
 }
 
 // 11 — O4 scheduler
 {
   const s = pres.addSlide({ masterName: "MAIN" });
-  title(s, "O4: el scheduler muestra el mecanismo");
-  s.addChart(pres.charts.BAR, [{ name: "% del tiempo", labels: ["Sin límite", "4 CPUs", "2 CPUs", "1 CPU", "1 rival", "nice 19 + 2 CPUs"], values: [0.0, 66.7, 83.4, 91.7, 7.7, 88.9] }],
-    chartBase({ x: 0.5, y: 1.4, w: 6.2, h: 3.6, barDir: "col", chartColors: [GREY, TEAL, TEAL, TEAL, RED, TEAL], valAxisMinVal: 0, valAxisMaxVal: 100, valAxisMajorUnit: 25,
-      title: "% del tiempo esperando en cola (prompt largo)", dataLabelFormatCode: "#,##0.0", catAxisLabelFontSize: 11 }));
-  card(s, 7.0, 1.4, 2.5, 1.65, STRONG);
-  await badge(s, lu.LuOctagonX, 7.95, 1.5, 0.6, AMBER, "Throttles");
-  txt(s, "10 / s", { x: 7.0, y: 2.15, w: 2.5, h: 0.5, fontFace: HF, fontSize: 28, bold: true, color: AMBER, align: "center", valign: "middle" });
-  txt(s, "frenadas con cuota", { x: 7.0, y: 2.65, w: 2.5, h: 0.3, fontSize: 13, color: WHITE, align: "center" });
-  card(s, 7.0, 3.25, 2.5, 1.75);
-  await badge(s, lu.LuUsers, 7.95, 3.35, 0.6, RED, "Un rival");
-  txt(s, "7,7 %", { x: 7.0, y: 4.0, w: 2.5, h: 0.55, fontFace: HF, fontSize: 28, bold: true, color: RED, align: "center", valign: "middle" });
-  txt(s, "de espera, pero −90 %", { x: 7.0, y: 4.55, w: 2.5, h: 0.3, fontSize: 13, color: TEXT, align: "center" });
-  s.addNotes("Cuarto objetivo: relacionar los resultados con lo que ve el kernel. Se midió, en ventanas de 20 segundos con el prompt largo, el archivo cpu.stat del cgroup y las capturas del scheduler (perf sched). Con cuotas de 4, 2 y 1 CPUs ocurren 10 throttles por segundo, uno por período de 100 ms, y los hilos de Ollama pasan 66,7 %, 83,4 % y 91,7 % del tiempo esperando en cola, con demoras máximas de hasta 94,6 ms, casi un período completo. Sin límite la espera es 0,0 %. Con nice 19 y cuota de 2 CPUs la espera es 88,9 %. El caso llamativo es el de un solo competidor: la espera es de apenas 7,7 % y sin throttling, pero el rendimiento cae 90 %, lo que respalda la hipótesis de que los hilos se esperan entre sí. Valores de las Tablas 8.3 y 8.5 del informe.");
+  title(s, "O4: qué registra el scheduler");
+  txt(s, "Espera de Ollama (%) = tiempo en cola ÷ (tiempo ejecutando + tiempo en cola)", { x: 0.5, y: 0.95, w: 9, h: 0.35, fontSize: 13, color: MUTED });
+  s.addChart(pres.charts.BAR, [{ name: "% del tiempo ejecutable", labels: ["Sin cuota", "4 CPUs eq.", "2 CPUs eq.", "1 CPU eq."], values: [0.0, 66.7, 83.4, 91.7] }],
+    chartBase({ x: 0.5, y: 1.4, w: 4.4, h: 3.2, barDir: "col", chartColors: [GREY, TEAL, TEAL, TEAL], valAxisMinVal: 0, valAxisMaxVal: 100, valAxisMajorUnit: 25,
+      title: "Exp. 2 · solo cuota, sin rivales", dataLabelFormatCode: "#,##0.0", catAxisLabelFontSize: 11 }));
+  txt(s, "Capturas de 20 s · 10 throttles/s con cuota · escalas distintas", { x: 0.5, y: 4.65, w: 4.4, h: 0.4, fontSize: 11, color: MUTED, valign: "top" });
+  s.addChart(pres.charts.BAR, [{ name: "% del tiempo ejecutable", labels: ["0 rivales", "1 rival"], values: [0.07, 7.65] }],
+    chartBase({ x: 5.2, y: 1.4, w: 4.3, h: 2.3, barDir: "col", chartColors: [GREY, RED], valAxisMinVal: 0, valAxisMaxVal: 10, valAxisMajorUnit: 5,
+      title: "Exp. 3 · sin cuota, mismo cpuset", dataLabelFormatCode: "#,##0.00", catAxisLabelFontSize: 11 }));
+  card(s, 5.2, 3.8, 4.3, 1.25, STRONG);
+  txt(s, "CPU usada por el rival: 0,91 en promedio", { x: 5.35, y: 3.86, w: 4.0, h: 0.3, fontSize: 14, bold: true, color: WHITE });
+  txt(s, "Rendimiento, de corridas completas aparte: 23,74 → 2,45 tokens/s", { x: 5.35, y: 4.16, w: 4.0, h: 0.5, fontSize: 12, color: PALE, valign: "top" });
+  txt(s, "Una captura de 20 s por condición, separada del rendimiento.", { x: 5.35, y: 4.68, w: 4.0, h: 0.33, fontSize: 11, color: MUTED, valign: "top" });
+  s.addNotes("Cuarto objetivo: relacionar los resultados con lo que ve el kernel. Se midió, en una captura de 20 segundos por condición con el prompt largo, el archivo cpu.stat del cgroup y el scheduler (perf sched). Esas capturas son corridas aparte de las que miden tokens por segundo. La espera es wait / (run + wait) de los hilos de Ollama, es decir, el porcentaje de su tiempo ejecutable que pasan en la cola de ejecución. Dos comparaciones separadas. Izquierda, Exp. 2, solo cuota y sin rivales: 0,0 % sin cuota y 66,7 %, 83,4 % y 91,7 % con cuotas de 4, 2 y 1 CPUs equivalentes. Con cuota ocurren 10 throttles por segundo, uno por período de 100 ms, y las demoras máximas llegan a 94,6 ms, casi un período completo. Derecha, Exp. 3, sin cuota y con el mismo cpuset: de 0 a 1 rival la espera pasa de 0,07 % a 7,65 % del tiempo ejecutable; el rival usa en promedio 0,91 CPU (no es un porcentaje de las 12 CPUs, y no se infiere nada sobre migración). El rendimiento sale de las mediciones completas aparte: 23,74 a 2,45 tokens/s. La captura con nice 19 más cuota (88,9 %) no se grafica acá: pertenece al Exp. 4. Qué no se puede afirmar: la espera medida es baja y, sin embargo, el rendimiento cae; eso es compatible con la hipótesis de sincronización de hilos, pero la hipótesis sigue sin probarse y no se atribuye la caída a ella. Valores de las Tablas 8.3 y 8.5 del informe.");
 }
 
 // 12 — Conclusions
@@ -408,8 +412,8 @@ const chartBase = (extra) => Object.assign({
   const s = pres.addSlide({ masterName: "COVER" });
   txt(s, "Conclusiones", { x: 0.5, y: 0.35, w: 9, h: 0.7, fontFace: HF, fontSize: 34, bold: true, color: WHITE });
   const items = [
-    [si.SiDocker, "≈ 0 %", "El contenedor no cuesta CPU", GREEN],
-    [lu.LuBatteryFull, "÷ N", "La cuota es exacta y manda", AMBER],
+    [si.SiDocker, "< 1 %", "Host vs. Docker en este ensayo", GREEN],
+    [lu.LuBatteryFull, "≈ ÷ N", "La cuota se cumple y manda", AMBER],
     [lu.LuUsers, "−90 %", "Competir pesa más; nice ayuda", RED],
   ];
   for (let i = 0; i < items.length; i++) {
@@ -419,7 +423,7 @@ const chartBase = (extra) => Object.assign({
     txt(s, it[1], { x, y: 2.3, w: 2.85, h: 0.8, fontFace: HF, fontSize: 40, bold: true, color: it[3], align: "center", valign: "middle" });
     txt(s, it[2], { x: x + 0.2, y: 3.15, w: 2.45, h: 0.85, fontSize: 17, bold: true, color: WHITE, align: "center", valign: "top" });
   }
-  const verdicts = [["O1", "cumplido", GREEN], ["H1", "confirmada", AMBER], ["H2 y H3", "confirmadas", RED]];
+  const verdicts = [["O1", "cumplido", GREEN], ["H1", "confirmada", AMBER], ["H2 y H3", "respaldadas", RED]];
   verdicts.forEach((v, i) => {
     const x = 0.5 + i * 3.1;
     card(s, x, 4.3, 2.85, 0.48, CARD, "Veredicto " + v[0]);
@@ -428,7 +432,7 @@ const chartBase = (extra) => Object.assign({
     txt(s, [{ text: v[0] + " ", options: { bold: true, color: v[2] } }, { text: v[1] }], { x: x + 0.58, y: 4.3, w: 2.2, h: 0.48, fontSize: 13, valign: "middle" });
   });
   txt(s, "¿Preguntas?", { x: 0.5, y: 4.88, w: 9, h: 0.4, fontSize: 16, color: AMBER, align: "center" });
-  s.addNotes("Tres ideas para llevarse. Una: los contenedores no cuestan CPU; Docker y el host son equivalentes (diferencia menor al 1 %). Dos: la cuota de cgroups se cumple con precisión, pero es proporcional (y algo peor, por la sincronización de los hilos), y manda por sobre cualquier prioridad. Tres: la competencia por CPU, incluso de un solo proceso, pesa mucho más de lo esperado porque los hilos del LLM se esperan entre sí; nice ayuda mucho (de 0,47 a 20,59 tokens/s) pero no supera una cuota estricta. Limitaciones: una máquina, un modelo, una configuración de hilos, y N = 10 en tres condiciones; la explicación por sincronización es una hipótesis que queda por probar variando el número de hilos. Se confirmaron las tres hipótesis H1, H2 y H3 del trabajo.");
+  s.addNotes("Tres ideas para llevarse. Una: en este montaje, Docker y el host rinden casi igual en CPU (medias con diferencia menor al 1 %); no se afirma que el costo sea cero. Dos: la cuota de cgroups se cumple con precisión, pero es aproximadamente proporcional (y algo peor; la sincronización de los hilos es una hipótesis sin probar), y manda por sobre cualquier prioridad. Tres: la competencia por CPU, incluso de un solo proceso, pesa mucho más de lo esperado, y la sincronización entre los hilos del LLM es una hipótesis sin probar; nice ayuda mucho (de 0,47 a 20,59 tokens/s) pero no supera una cuota estricta. Limitaciones: una máquina, un modelo, una configuración de hilos, y N = 10 en tres condiciones; la explicación por sincronización es una hipótesis que queda por probar variando el número de hilos. Los resultados respaldan H1, H2 y H3 en las condiciones ensayadas. El contraste a igual cuota no aísla el efecto de la competencia, porque también cambia el conjunto de CPUs disponibles.");
 }
 
 // Post-proceso: ids únicos por diapositiva, metadatos y Content_Types sin masters inexistentes
